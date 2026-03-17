@@ -53,4 +53,9 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function loket()
+    {
+        return $this->hasOne(Loket::class);
+    }
 }

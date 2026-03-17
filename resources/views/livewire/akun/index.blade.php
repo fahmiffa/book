@@ -13,7 +13,9 @@ state([
     'location_id' => '', 
     'role' => 1,
     'editingUser' => null, 
-    'showModal' => false
+    'showModal' => false,
+    'search' => '',
+    'filter_location_id' => ''
 ]);
 
 rules(fn () => [
@@ -24,7 +26,11 @@ rules(fn () => [
     'role' => 'required|integer',
 ]);
 
-$users = computed(fn () => User::with('location')->latest()->get());
+$users = computed(fn () => User::with('location')
+    ->when($this->search, fn($q) => $q->where('name', 'like', '%' . $this->search . '%'))
+    ->when($this->filter_location_id, fn($q) => $q->where('location_id', $this->filter_location_id))
+    ->latest()
+    ->get());
 $locations = computed(fn () => Location::all());
 
 $save = function () {
@@ -75,14 +81,34 @@ $delete = function (User $user) {
 ?>
 
 <div class="p-6">
-    <div class="flex justify-between items-center mb-6">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Manajemen Akun</h2>
-        <button wire:click="$set('showModal', true)" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition duration-300 flex items-center gap-2 shadow-lg">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-            </svg>
-            Tambah Akun
-        </button>
+        <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+            <!-- Search Input -->
+            <div class="relative flex-grow md:flex-grow-0 group">
+                <input type="text" wire:model.live="search" placeholder="Cari nama..." class="pl-10 pr-4 py-2 w-full md:w-64 bg-gray-50 dark:bg-gray-700/50 border-transparent rounded-xl text-sm focus:bg-white dark:focus:bg-gray-700 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all dark:text-white">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                    <svg class="h-4 w-4 text-gray-400 group-focus-within:text-emerald-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Location Filter -->
+            <select wire:model.live="filter_location_id" class="bg-gray-50 dark:bg-gray-700/50 border-transparent rounded-xl text-sm py-2 px-3 focus:bg-white dark:focus:bg-gray-700 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all dark:text-white">
+                <option value="">Semua Lokasi</option>
+                @foreach($this->locations as $loc)
+                    <option value="{{ $loc->id }}">{{ $loc->name }}</option>
+                @endforeach
+            </select>
+
+            <button wire:click="$set('showModal', true)" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition duration-300 flex items-center gap-2 shadow-lg whitespace-nowrap">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                </svg>
+                Tambah Akun
+            </button>
+        </div>
     </div>
 
     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
@@ -102,8 +128,14 @@ $delete = function (User $user) {
                         <td class="px-6 py-4 dark:text-gray-300">{{ $user->name }}</td>
                         <td class="px-6 py-4 dark:text-gray-300">{{ $user->email }}</td>
                         <td class="px-6 py-4">
-                            <span class="px-3 py-1 {{ $user->role === 0 ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-700' }} rounded-full text-xs font-medium">
-                                {{ $user->role === 0 ? 'Admin (All)' : 'Petugas' }}
+                            <span class="px-3 py-1 {{ $user->role === 0 ? 'bg-purple-100 text-purple-700' : ($user->role === 1 ? 'bg-gray-100 text-gray-700' : 'bg-pink-100 text-pink-700') }} rounded-full text-xs font-medium">
+                                @if($user->role === 0)
+                                    Admin (All)
+                                @elseif($user->role === 1)
+                                    Petugas
+                                @else
+                                    Petugas Loket
+                                @endif
                             </span>
                         </td>
                         <td class="px-6 py-4">
@@ -171,6 +203,7 @@ $delete = function (User $user) {
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Peran (Role)</label>
                         <select wire:model="role" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition">
+                            <option value="2">Petugas Loket (Akses Loket)</option>
                             <option value="1">Petugas (Terbatas Lokasi)</option>
                             <option value="0">Admin (Semua Lokasi)</option>
                         </select>

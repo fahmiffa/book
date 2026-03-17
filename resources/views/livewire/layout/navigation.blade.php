@@ -43,6 +43,9 @@ new class extends Component
                         <x-nav-link :href="route('layanan')" :active="request()->routeIs('layanan')" wire:navigate>
                             {{ __('Layanan') }}
                         </x-nav-link>
+                        <x-nav-link :href="route('loket')" :active="request()->routeIs('loket')" wire:navigate>
+                            {{ __('Loket') }}
+                        </x-nav-link>
                     @endif
                     <x-nav-link :href="route('booking.index')" :active="request()->routeIs('booking.index')" wire:navigate>
                         {{ __('Booking') }}
@@ -113,6 +116,9 @@ new class extends Component
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('layanan')" :active="request()->routeIs('layanan')" wire:navigate>
                     {{ __('Layanan') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('loket')" :active="request()->routeIs('loket')" wire:navigate>
+                    {{ __('Loket') }}
                 </x-responsive-nav-link>
             @endif
             <x-responsive-nav-link :href="route('booking.index')" :active="request()->routeIs('booking.index')" wire:navigate>

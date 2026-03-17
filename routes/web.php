@@ -16,6 +16,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('lokasi', 'lokasi')->name('lokasi');
     Route::view('akun', 'akun')->name('akun');
     Route::view('layanan', 'layanan')->name('layanan');
+    Route::view('loket', 'loket')->name('loket');
     Route::view('booking-list', 'booking.index')->name('booking.index');
     Route::view('antrian', 'antrian')->name('antrian');
 });
