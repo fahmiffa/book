@@ -9,8 +9,14 @@ use function Livewire\Volt\{state, rules, computed, mount, updated};
 state(['name' => '', 'location_id' => '', 'user_id' => '', 'editingLoket' => null, 'showModal' => false]);
 
 mount(function () {
-    if (auth()->user()->role !== 0) {
+    // Role 2 (Petugas) cannot access this page
+    if (auth()->user()->role === 2) {
         return $this->redirect(route('dashboard'), navigate: true);
+    }
+    
+    // Auto-set location for non-Super Admins
+    if (auth()->user()->role !== 0) {
+        $this->location_id = auth()->user()->location_id;
     }
 });
 
@@ -20,8 +26,25 @@ rules([
     'user_id' => 'required|exists:users,id',
 ]);
 
-$lokets = computed(fn () => Loket::with(['location', 'user'])->latest()->get());
-$locations = computed(fn () => Location::all());
+$lokets = computed(function () {
+    $user = auth()->user();
+    $query = Loket::with(['location', 'user']);
+    
+    if ($user->role !== 0) {
+        $query->where('location_id', $user->location_id);
+    }
+    
+    return $query->latest()->get();
+});
+
+$locations = computed(function () {
+    $user = auth()->user();
+    if ($user->role !== 0) {
+        return Location::where('id', $user->location_id)->get();
+    }
+    return Location::all();
+});
+
 $users = computed(fn () => User::where('role', 2)
     ->when($this->location_id, fn($q) => $q->where('location_id', $this->location_id))
     ->get());
@@ -31,6 +54,13 @@ updated(['location_id' => function () {
 }]);
 
 $save = function () {
+    $user = auth()->user();
+    
+    // Force location for non-Super Admins
+    if ($user->role !== 0) {
+        $this->location_id = $user->location_id;
+    }
+
     $this->validate();
 
     if ($this->editingLoket) {
@@ -51,6 +81,10 @@ $save = function () {
 };
 
 $edit = function (Loket $loket) {
+    if (auth()->user()->role !== 0 && $loket->location_id !== auth()->user()->location_id) {
+        return;
+    }
+    
     $this->editingLoket = $loket;
     $this->name = $loket->name;
     $this->location_id = $loket->location_id;
@@ -59,6 +93,9 @@ $edit = function (Loket $loket) {
 };
 
 $delete = function (Loket $loket) {
+    if (auth()->user()->role !== 0 && $loket->location_id !== auth()->user()->location_id) {
+        return;
+    }
     $loket->delete();
 };
 
@@ -66,12 +103,14 @@ $delete = function (Loket $loket) {
 
 <div class="p-6">
     <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Daftar Loket</h2>
+        <div>
+            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] mb-1">Pengaturan Loket Layanan</p>
+        </div>
         <button wire:click="$set('showModal', true)" class="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white rounded-lg transition duration-300 flex items-center gap-2 shadow-lg">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
             </svg>
-            Tambah Loket
+            Tambah
         </button>
     </div>
 
@@ -132,41 +171,43 @@ $delete = function (Loket $loket) {
                         @error('name') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                     </div>
                     <!-- Searchable Location Select -->
-                    <div class="relative" x-data="dropdownSearch">
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 ml-1">Lokasi</label>
-                        <button type="button" @click="toggle" class="mt-1 relative w-full bg-gray-50 dark:bg-gray-700/50 border-transparent rounded-2xl py-3 pl-4 pr-10 text-left cursor-default focus:outline-none focus:ring-4 focus:ring-pink-500/10 sm:text-sm transition-all dark:text-white">
-                            <span class="block truncate">
-                                {{ $location_id ? ($this->locations->firstWhere('id', $location_id)->name ?? 'Pilih Lokasi') : 'Pilih Lokasi' }}
-                            </span>
-                            <span class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
-                                <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M10 3a1 1 0 01.707.293l3 3a1 1 0 01-1.414 1.414L10 5.414 7.707 7.707a1 1 0 01-1.414-1.414l3-3A1 1 0 0110 3zm-3.707 9.293a1 1 0 011.414 0L10 14.586l2.293-2.293a1 1 0 011.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                </svg>
-                            </span>
-                        </button>
+                    @if(auth()->user()->role === 0)
+                        <div class="relative" x-data="dropdownSearch">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 ml-1">Lokasi</label>
+                            <button type="button" @click="toggle" class="mt-1 relative w-full bg-gray-50 dark:bg-gray-700/50 border-transparent rounded-2xl py-3 pl-4 pr-10 text-left cursor-default focus:outline-none focus:ring-4 focus:ring-pink-500/10 sm:text-sm transition-all dark:text-white">
+                                <span class="block truncate">
+                                    {{ $location_id ? ($this->locations->firstWhere('id', $location_id)->name ?? 'Pilih Lokasi') : 'Pilih Lokasi' }}
+                                </span>
+                                <span class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
+                                    <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 3a1 1 0 01.707.293l3 3a1 1 0 01-1.414 1.414L10 5.414 7.707 7.707a1 1 0 01-1.414-1.414l3-3A1 1 0 0110 3zm-3.707 9.293a1 1 0 011.414 0L10 14.586l2.293-2.293a1 1 0 011.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                    </svg>
+                                </span>
+                            </button>
 
-                        <div x-show="open" @click.away="close" x-transition class="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 shadow-2xl max-h-60 rounded-2xl py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm" x-cloak>
-                            <div class="sticky top-0 z-10 bg-white dark:bg-gray-800 p-2 border-b border-gray-100 dark:border-gray-700">
-                                <input type="text" x-model="search" x-ref="searchInput" placeholder="Cari lokasi..." class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border-none rounded-xl text-sm focus:ring-2 focus:ring-pink-500">
+                            <div x-show="open" @click.away="close" x-transition class="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 shadow-2xl max-h-60 rounded-2xl py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm" x-cloak>
+                                <div class="sticky top-0 z-10 bg-white dark:bg-gray-800 p-2 border-b border-gray-100 dark:border-gray-700">
+                                    <input type="text" x-model="search" x-ref="searchInput" placeholder="Cari lokasi..." class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border-none rounded-xl text-sm focus:ring-2 focus:ring-pink-500">
+                                </div>
+                                <ul class="pt-1">
+                                    @foreach($this->locations as $loc)
+                                        <li x-show="search === '' || '{{ strtolower($loc->name) }}'.includes(search.toLowerCase())" 
+                                            @click="select('location_id', {{ $loc->id }})" class="cursor-pointer select-none relative py-3 pl-4 pr-9 hover:bg-pink-50 dark:hover:bg-pink-900/20 text-gray-900 dark:text-gray-200 transition-colors">
+                                            <span class="{{ $location_id == $loc->id ? 'font-bold text-pink-600' : 'font-normal' }}">{{ $loc->name }}</span>
+                                            @if($location_id == $loc->id)
+                                                <span class="absolute inset-y-0 right-0 flex items-center pr-4 text-pink-600">
+                                                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                                    </svg>
+                                                </span>
+                                            @endif
+                                        </li>
+                                    @endforeach
+                                </ul>
                             </div>
-                            <ul class="pt-1">
-                                @foreach($this->locations as $loc)
-                                    <li x-show="search === '' || '{{ strtolower($loc->name) }}'.includes(search.toLowerCase())" 
-                                        @click="select('location_id', {{ $loc->id }})" class="cursor-pointer select-none relative py-3 pl-4 pr-9 hover:bg-pink-50 dark:hover:bg-pink-900/20 text-gray-900 dark:text-gray-200 transition-colors">
-                                        <span class="{{ $location_id == $loc->id ? 'font-bold text-pink-600' : 'font-normal' }}">{{ $loc->name }}</span>
-                                        @if($location_id == $loc->id)
-                                            <span class="absolute inset-y-0 right-0 flex items-center pr-4 text-pink-600">
-                                                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                                                </svg>
-                                            </span>
-                                        @endif
-                                    </li>
-                                @endforeach
-                            </ul>
+                            @error('location_id') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
-                        @error('location_id') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-                    </div>
+                    @endif
 
                     <!-- Searchable Petugas Select -->
                     <div class="relative" x-data="dropdownSearch">
@@ -219,4 +260,5 @@ $delete = function (Loket $loket) {
             </div>
         </div>
     @endif
+
 </div>

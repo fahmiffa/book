@@ -1,6 +1,7 @@
-export default () => ({
+export default (config = {}) => ({
     open: false,
     search: '',
+    items: config.items || [],
     
     toggle() {
         this.open = !this.open;
@@ -19,5 +20,12 @@ export default () => ({
     select(property, value) {
         this.$wire.set(property, value);
         this.close();
+    },
+
+    get filteredItems() {
+        if (!this.search) return this.items;
+        return this.items.filter(item => 
+            item.name.toLowerCase().includes(this.search.toLowerCase())
+        );
     }
 });

@@ -13,12 +13,12 @@
         </h2>
     </x-slot>
 
-    <div class="py-10">
+    <div class="pb-10">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-10">
             <!-- Welcome Section -->
-            <div class="bg-indigo-600 rounded-[2.5rem] p-8 md:p-12 text-white shadow-2xl relative overflow-hidden group">
+            <div class="bg-indigo-600 rounded-3xl sm:rounded-[2.5rem] p-6 md:p-12 text-white shadow-2xl relative overflow-hidden group">
                 <div class="relative z-10 max-w-2xl">
-                    <h3 class="text-3xl md:text-4xl font-black mb-4">Halo, {{ $user->name }}! 👋</h3>
+                    <h3 class="text-2xl md:text-4xl font-black mb-4">Halo, {{ $user->name }}! 👋</h3>
                     <p class="text-indigo-100 text-lg leading-relaxed opacity-90">
                         @if($user->role === 0)
                             Anda sedang masuk sebagai <span class="font-bold underline">Administrator Utama</span>. Anda memiliki akses penuh untuk mengelola semua lokasi, layanan, dan data antrian di seluruh sistem.
@@ -96,28 +96,6 @@
                     </div>
                     <h4 class="text-4xl font-black text-gray-900 dark:text-white mb-1">{{ $totalLokasi }}</h4>
                     <p class="text-sm text-gray-500 font-medium">Total Lokasi Kantor</p>
-                </div>
-            </div>
-
-            <!-- Future Analytics Chart Placeholder -->
-            <div class="bg-white dark:bg-gray-900 rounded-[2.5rem] p-8 border border-gray-100 dark:border-gray-800 shadow-sm relative overflow-hidden">
-                <div class="flex items-center justify-between mb-8">
-                    <h4 class="text-xl font-black tracking-tight text-gray-900 dark:text-white">Aktivitas Mingguan</h4>
-                    <button class="text-sm font-bold text-indigo-600 dark:text-indigo-400 hover:underline">Download Report</button>
-                </div>
-                <div class="h-48 flex items-end gap-2 md:gap-4">
-                    @php
-                        $days = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
-                        $heights = [40, 65, 45, 90, 75, 20, 15];
-                    @endphp
-                    @foreach($days as $index => $day)
-                        <div class="flex-1 flex flex-col items-center gap-2 group cursor-pointer">
-                            <div class="w-full bg-indigo-50 dark:bg-gray-800 rounded-full h-40 relative overflow-hidden">
-                                <div class="absolute bottom-0 left-0 w-full bg-indigo-500 group-hover:bg-indigo-400 transition-all rounded-full" style="height: {{ $heights[$index] }}%"></div>
-                            </div>
-                            <span class="text-xs font-bold text-gray-400">{{ $day }}</span>
-                        </div>
-                    @endforeach
                 </div>
             </div>
         </div>

@@ -1,0 +1,193 @@
+LOGIKA INTI DAN SKEMA PELAYANAN NOMOR ANTRIAN.
+UNTUK SEMENTARA, MEJA CUSTOMER SERVICE ADA 3 (No 1,2 dan 3)
+UNTUK SETIAP CS, MULTI LAYANAN, TIDAK DI BEDAKAN
+JUMLAH NOMOR ANTRIAN PER HARI 60 NOMOR (LIMIT)
+LOASI KANTOR SUDAH BAGUS (CRUD)
+
+ALUR GENERATE NOMOR ANTRIAN,
+JIKA NOMOR ANTRIAN SEBELUM PUKUL 11.00 SUDAH TERGENERATE SEMUA NOMOR, MAKA
+PESERTA BARU TIDAK DAPAT MENDAFTAR DI TANGGAL ITU / YANG DI PILIH,
+HARUS BERGANTI TANGGAL, DAN JIKA TANGGAL SAMA ATAU BERBEDA TEAPI
+PEMBUATAN NOMOR ANTRIAN SEBELUM
+PUKUL 04.00, MAKA
+
+GENERATE NOMOR ANTRIAN
+- SETIAP HARI KERJA DAN
+  SETIAP PUKUL 04.00 PAGI
+- BATAS GENERATE TERJADI BISA KARENA 2 KEADAAN :
+  1. NOMOR SUDAH TERGENERATE 60 SEBELUM PUKUL 11.00, ATAU
+  2. SUDAH MENCAPAI PUKUL 11.00 WALAUPUN BELUM MENCAPAI
+     NOMOR KE 60. JIKA
+   HARI KERJA & SEBELUM PUKUL 11.00 & BELUM MENCAPAI NOMOR AKHIR
+   MAKA BUATKAN NOMOR ANTRIAN, JIKA SALAH SATU TIDAK MEMENUHI
+   ALIHKAN TANGGAL LAIN (JIKA ANTARA PUKUL 04.00 - 11.00), JIKA
+   DILUAR SEBELUM PUKUL 04.00 PAGI ATAU >= 11.00, ALIIHKAN LAGI
+   KE TANGGAL LAIN.
+
+RASIO PELAYANAN 1:20
+PER CUSTOMER SERVICE MELAYANI 20 PESERTA
+
+=================================================
+
+1. Tahap Pengambilan Nomor Antrian oleh Peserta (Website)
+   1. Akses Website Antrian
+      Peserta membuka website resmi institusi melalui browser.
+      Langkah peserta:
+      1. Membuka halaman pengambilan antrian
+      2. Memilih jenis layanan (Udah Pas Dengan Demo, CRUD)
+         contoh: Klaim JHT, Koreksi Pengkinian Dana, Pendaftara, dll.
+
+   2. Mengisi Data Peserta
+      Peserta mengisi data yang diperlukan, misalnya:
+      - Nama
+      - NIK / ID
+      - Nomor HP
+      - Email
+      - Jenis layanan
+      - Tanggal kedatangan
+      Sistem kemudian melakukan:
+      - Validasi data
+      - Mengecek ketersediaan kuota antrian
+
+   3. Sistem Menghasilkan Nomor Antrian
+      Jika kuota tersedia, sistem akan:
+      1. Menghasilkan nomor antrian otomatis
+      2. Menentukan :
+         - nomor antrian
+         - estimasi waktu pelayanan
+         - loket/unit pelayanan
+      3. Menyimpan data ke database
+         Contoh output:
+         Nomor Antrian : A-034
+         Tanggal : 18 Maret 2026
+         Estimasi : 09.30 WIB
+         Layanan : Legalisasi Dokumen
+   4. Bukti Nomor Antrian
+      Peserta menerima:
+      - halaman bukti nomor antrian
+      - QR Code / kode booking
+      Peserta dapat:
+      - screenshot, atau
+      - download PDF, atau
+      - menerima email / WhatsApp notifikasi
+
+2. Tahap Kedatangan Peserta ke Kantor
+   Pada hari pelayanan:
+   1. Peserta Datang ke Kantor
+      Peserta datang sesuai:
+      - tanggal yang dipilih
+      - jam estimasi pelayanan
+        Peserta membawa:
+      - bukti nomor antrian
+      - dokumen persyaratan
+
+   2. Verifikasi di Mesin / Petugas
+      Di kantor biasanya ada:
+      Opsi A — Mesin Check-in
+      Peserta scan QR code / input nomor antrian. atau
+      Opsi B — Verifikasi Petugas
+      Petugas memasukkan nomor antrian di sistem.
+      Sistem kemudian: - mengubah status antrian menjadi "check-in"
+
+   3. Tahap Pengelolaan Antrian oleh Sistem
+      Di dalam sistem terdapat dashboard antrian yang digunakan petugas.
+      Komponen sistem:
+      - Dashboard admin
+      - Dashboard loket pelayanan
+      - Display nomor antrian
+      - Database antrian
+        Status Antrian dalam Sistem.
+        Contoh Status antrian :
+
+        | Status   | Keterangan            |
+        | -------- | --------------------- |
+        | booked   | sudah mengambil nomor |
+        | check-in | sudah hadir di kantor |
+        | waiting  | menunggu dipanggil    |
+        | called   | sedang dipanggil      |
+        | serving  | sedang dilayani       |
+        | finished | pelayanan selesai     |
+        | skipped  | tidak hadir           |
+
+   4. Proses Pemanggilan Antrian
+      Petugas loket membuka dashboard loket.
+      Langkah:
+      1. Petugas klik "Panggil Antrian Berikutnya"
+      2. Sistem mengambil nomor dengan aturan:
+      - urutan nomor
+      - layanan yang sama
+      Nomor muncul di:
+      - layar monitor ruang tunggu
+      - speaker panggilan
+        Contoh:
+        Nomor A-034
+        Silakan menuju Loket 2
+
+   5. Tahap Pelayanan di Loket
+      Peserta menuju loket yang dipanggil.
+      Petugas kemudian:
+      1. Memverifikasi identitas
+      2. Memeriksa dokumen
+      3. Melakukan proses pelayanan
+         Contoh pelayanan:
+      - klaim jht
+      - koreksi data
+      - pendaftaran
+      - konsultasi
+
+   6. Penyelesaian Pelayanan
+      Setelah pelayanan selesai:
+      Petugas klik "Selesai" pada dashboard.
+      Sistem akan:
+      - mengubah status menjadi finished
+      - menyimpan durasi pelayanan
+      - menyimpan log aktivitas
+
+   7. Laporan dan Monitoring Sistem
+      Sistem juga menghasilkan laporan untuk institusi:
+      Contoh laporan:
+      Laporan Harian
+      - jumlah antrian diambil
+      - jumlah hadir
+      - jumlah tidak hadir
+      Laporan Pelayanan
+      - waktu rata-rata pelayanan
+      - beban tiap loket
+      - jenis layanan paling banyak
+      Statistik
+      - jam paling ramai
+      - hari paling ramai
+
+   8. Arsitektur Sistem Sederhana
+      Alur sistem secara teknis:
+
+      Peserta
+      │
+      │ Ambil nomor di website
+      ▼
+      Website Antrian
+      │
+      │ Simpan data
+      ▼
+      Database Antrian
+      │
+      ├─ Dashboard Admin
+      ├─ Dashboard Loket
+      └─ Display Antrian
+      │
+      ▼
+      Peserta Dipanggil
+      │
+      ▼
+      Pelayanan di Kantor
+
+   9. Contoh Alur Singkat End-to-End
+      1. Peserta membuka website.
+      2. Mengambil nomor antrian layanan.
+      3. Sistem memberikan nomor dan estimasi waktu.
+      4. Peserta datang ke kantor.
+      5. Peserta melakukan check-in.
+      6. Petugas memanggil nomor melalui dashboard.
+      7. Peserta menuju loket.
+      8. Petugas melakukan pelayanan.
+      9. Pelayanan selesai dan dicatat di sistem.

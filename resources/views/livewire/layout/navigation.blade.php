@@ -16,138 +16,128 @@ new class extends Component
     }
 }; ?>
 
-<nav x-data="{ open: false }" class="bg-white/80 dark:bg-gray-950/80 backdrop-blur-xl sticky top-0 z-50 border-b border-gray-100 dark:border-gray-800 transition-all duration-300">
-    <!-- Primary Navigation Menu -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
-            <div class="flex">
-                <!-- Logo -->
-                <div class="shrink-0 flex items-center">
-                    <a href="{{ route('dashboard') }}" wire:navigate>
-                        <x-application-logo class="block h-9 w-auto fill-current text-gray-800 dark:text-gray-200" />
-                    </a>
+<div class="relative">
+    <!-- Background Overlay for Mobile -->
+    <div 
+        x-show="sidebarOpen" 
+        x-transition:enter="transition-opacity ease-linear duration-300"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition-opacity ease-linear duration-300"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        @click="sidebarOpen = false"
+        class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 lg:hidden"
+    ></div>
+
+    <!-- Sidebar Sidebar -->
+    <aside 
+        id="sidebar"
+        :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
+        class="fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-gray-950 border-r border-gray-100 dark:border-gray-800 transition-transform duration-300 ease-in-out lg:static lg:inset-0"
+    >
+        <div class="h-full flex flex-col">
+            <!-- Brand / Logo -->
+            <div class="h-24 px-8 flex items-center justify-between">
+                <a href="{{ route('dashboard') }}" class="flex items-center gap-3">
+                    <x-application-logo class="h-10 w-auto fill-current text-indigo-600" />
+                    <div class="flex flex-col">
+                        <span class="text-lg font-black tracking-tighter text-gray-900 dark:text-white leading-none">BOOKING</span>
+                        <span class="text-[10px] font-bold tracking-widest text-gray-500 uppercase">System v2.0</span>
+                    </div>
+                </a>
+                <button @click="sidebarOpen = false" class="lg:hidden p-2 text-gray-400 hover:text-gray-900 dark:hover:text-white">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <!-- Navigation Links -->
+            <div class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+                <div class="px-4 mb-4">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">Menu Utama</p>
                 </div>
 
-                <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" wire:navigate>
-                        {{ __('Dashboard') }}
-                    </x-nav-link>
+                <x-sidebar-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" wire:navigate>
+                    <x-slot name="icon">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                    </x-slot>
+                    Dashboard
+                </x-sidebar-link>
+
+                @if(auth()->user()->role === 0 || auth()->user()->role === 1)
+                    <div class="px-4 mt-8 mb-4 border-t border-gray-50 dark:border-gray-900/50 pt-6">
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">Master Data</p>
+                    </div>
+
                     @if(auth()->user()->role === 0)
-                        <x-nav-link :href="route('lokasi')" :active="request()->routeIs('lokasi')" wire:navigate>
-                            {{ __('Lokasi') }}
-                        </x-nav-link>
-                        <x-nav-link :href="route('akun')" :active="request()->routeIs('akun')" wire:navigate>
-                            {{ __('Akun') }}
-                        </x-nav-link>
-                        <x-nav-link :href="route('layanan')" :active="request()->routeIs('layanan')" wire:navigate>
-                            {{ __('Layanan') }}
-                        </x-nav-link>
-                        <x-nav-link :href="route('loket')" :active="request()->routeIs('loket')" wire:navigate>
-                            {{ __('Loket') }}
-                        </x-nav-link>
+                        <x-sidebar-link :href="route('lokasi')" :active="request()->routeIs('lokasi')" wire:navigate>
+                            <x-slot name="icon">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            </x-slot>
+                            Lokasi
+                        </x-sidebar-link>
                     @endif
-                    <x-nav-link :href="route('booking.index')" :active="request()->routeIs('booking.index')" wire:navigate>
-                        {{ __('Booking') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('antrian')" :active="request()->routeIs('antrian')" wire:navigate>
-                        {{ __('Antrian') }}
-                    </x-nav-link>
+
+                    <x-sidebar-link :href="route('akun')" :active="request()->routeIs('akun')" wire:navigate>
+                        <x-slot name="icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                        </x-slot>
+                        Akun
+                    </x-sidebar-link>
+
+                    <x-sidebar-link :href="route('loket')" :active="request()->routeIs('loket')" wire:navigate>
+                        <x-slot name="icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                        </x-slot>
+                        Loket
+                    </x-sidebar-link>
+
+                    @if(auth()->user()->role === 0)
+                        <x-sidebar-link :href="route('layanan')" :active="request()->routeIs('layanan')" wire:navigate>
+                            <x-slot name="icon">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                            </x-slot>
+                            Layanan
+                        </x-sidebar-link>
+                    @endif
+                @endif
+
+                <div class="px-4 mt-8 mb-4 border-t border-gray-50 dark:border-gray-900/50 pt-6">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">Transaksi</p>
+                </div>
+
+                <x-sidebar-link :href="route('booking.index')" :active="request()->routeIs('booking.index')" wire:navigate>
+                    <x-slot name="icon">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    </x-slot>
+                    Pendaftaran
+                </x-sidebar-link>
+
+                <x-sidebar-link :href="route('antrian')" :active="request()->routeIs('antrian')" wire:navigate>
+                    <x-slot name="icon">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </x-slot>
+                    Antrian
+                </x-sidebar-link>
+            </div>
+
+            <!-- Profile and Logout -->
+            <div class="p-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/30">
+                <div class="p-4 rounded-2xl flex items-center justify-between group transition-colors">
+                    <div class="flex items-center gap-3">
+                        <div class="h-10 w-10 rounded-full bg-indigo-600 flex items-center justify-center text-white font-black text-sm shadow-lg shadow-indigo-500/20">
+                            {{ substr(auth()->user()->name, 0, 1) }}
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-xs font-black text-gray-900 dark:text-white truncate max-w-[120px]">{{ auth()->user()->name }}</span>
+                            <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">{{ auth()->user()->role === 0 ? 'Admin' : 'Petugas' }}</span>
+                        </div>
+                    </div>
+                    <button wire:click="logout" class="p-2 text-gray-400 hover:text-rose-600 transition-colors" title="Logout">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    </button>
                 </div>
             </div>
-
-            <!-- Notifications and Settings Dropdown -->
-            <div class="hidden sm:flex sm:items-center sm:ms-6">
-                <livewire:layout.notifications />
-                
-                <div class="ms-3 relative">
-                    <x-dropdown align="right" width="48">
-                    <x-slot name="trigger">
-                        <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
-                            <div x-data="{{ json_encode(['name' => auth()->user()->name]) }}" x-text="name" x-on:profile-updated.window="name = $event.detail.name"></div>
-
-                            <div class="ms-1">
-                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                </svg>
-                            </div>
-                        </button>
-                    </x-slot>
-
-                    <x-slot name="content">
-                        <x-dropdown-link :href="route('profile')" wire:navigate>
-                            {{ __('Profile') }}
-                        </x-dropdown-link>
-
-                        <!-- Authentication -->
-                        <button wire:click="logout" class="w-full text-start">
-                            <x-dropdown-link>
-                                {{ __('Log Out') }}
-                            </x-dropdown-link>
-                        </button>
-                    </x-slot>
-                </x-dropdown>
-            </div>
-
-            <!-- Hamburger -->
-            <div class="-me-2 flex items-center sm:hidden">
-                <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-gray-500 dark:focus:text-gray-400 transition duration-150 ease-in-out">
-                    <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                        <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                        <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
         </div>
-    </div>
-
-    <!-- Responsive Navigation Menu -->
-    <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
-        <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" wire:navigate>
-                {{ __('Dashboard') }}
-            </x-responsive-nav-link>
-            @if(auth()->user()->role === 0)
-                <x-responsive-nav-link :href="route('lokasi')" :active="request()->routeIs('lokasi')" wire:navigate>
-                    {{ __('Lokasi') }}
-                </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('akun')" :active="request()->routeIs('akun')" wire:navigate>
-                    {{ __('Akun') }}
-                </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('layanan')" :active="request()->routeIs('layanan')" wire:navigate>
-                    {{ __('Layanan') }}
-                </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('loket')" :active="request()->routeIs('loket')" wire:navigate>
-                    {{ __('Loket') }}
-                </x-responsive-nav-link>
-            @endif
-            <x-responsive-nav-link :href="route('booking.index')" :active="request()->routeIs('booking.index')" wire:navigate>
-                {{ __('Booking') }}
-            </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('antrian')" :active="request()->routeIs('antrian')" wire:navigate>
-                {{ __('Antrian') }}
-            </x-responsive-nav-link>
-        </div>
-
-        <!-- Responsive Settings Options -->
-        <div class="pt-4 pb-1 border-t border-gray-200 dark:border-gray-600">
-            <div class="px-4">
-                <div class="font-medium text-base text-gray-800 dark:text-gray-200" x-data="{{ json_encode(['name' => auth()->user()->name]) }}" x-text="name" x-on:profile-updated.window="name = $event.detail.name"></div>
-                <div class="font-medium text-sm text-gray-500">{{ auth()->user()->email }}</div>
-            </div>
-
-            <div class="mt-3 space-y-1">
-                <x-responsive-nav-link :href="route('profile')" wire:navigate>
-                    {{ __('Profile') }}
-                </x-responsive-nav-link>
-
-                <!-- Authentication -->
-                <button wire:click="logout" class="w-full text-start">
-                    <x-responsive-nav-link>
-                        {{ __('Log Out') }}
-                    </x-responsive-nav-link>
-                </button>
-            </div>
-        </div>
-    </div>
-</nav>
+    </aside>
+</div>

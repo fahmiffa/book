@@ -22,5 +22,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 Route::view('booking', 'booking.form')->name('booking.form');
+Route::view('booking/check/{uuid}', 'booking.check')->name('booking.check');
 
 require __DIR__.'/auth.php';

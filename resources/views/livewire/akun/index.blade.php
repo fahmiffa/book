@@ -15,7 +15,8 @@ state([
     'editingUser' => null, 
     'showModal' => false,
     'search' => '',
-    'filter_location_id' => ''
+    'filter_location_id' => '',
+    'searchLocationModal' => '',
 ]);
 
 rules(fn () => [
@@ -26,14 +27,46 @@ rules(fn () => [
     'role' => 'required|integer',
 ]);
 
-$users = computed(fn () => User::with('location')
-    ->when($this->search, fn($q) => $q->where('name', 'like', '%' . $this->search . '%'))
-    ->when($this->filter_location_id, fn($q) => $q->where('location_id', $this->filter_location_id))
-    ->latest()
-    ->get());
-$locations = computed(fn () => Location::all());
+$users = computed(function () {
+    $user = auth()->user();
+    $query = User::with('location');
+
+    // Scoping for non-Super Admins
+    if ($user->role !== 0) {
+        $query->where('location_id', $user->location_id)
+              ->where('role', '>', 0);
+    }
+
+    return $query->when($this->search, fn($q) => $q->where('name', 'like', '%' . $this->search . '%'))
+        ->when($this->filter_location_id, fn($q) => $q->where('location_id', $this->filter_location_id))
+        ->latest()
+        ->get();
+});
+
+$locations = computed(function () {
+    $user = auth()->user();
+    $query = Location::query();
+    
+    if ($user->role !== 0) {
+        $query->where('id', $user->location_id);
+    }
+
+    if ($this->searchLocationModal) {
+        $query->where('name', 'like', '%' . $this->searchLocationModal . '%');
+    }
+
+    return $query->get();
+});
 
 $save = function () {
+    $user = auth()->user();
+    
+    // Auto-set location and role for non-Super Admins
+    if ($user->role !== 0) {
+        $this->location_id = $user->location_id;
+        $this->role = 2; // Non-Super Admins can only create/manage Petugas Loket
+    }
+
     $this->validate();
 
     if ($this->editingUser) {
@@ -62,6 +95,11 @@ $save = function () {
 };
 
 $edit = function (User $user) {
+    // Security check: Non-Super Admin cannot edit Role 0 or users from other locations
+    if (auth()->user()->role !== 0 && ($user->role === 0 || $user->location_id !== auth()->user()->location_id)) {
+        return;
+    }
+
     $this->editingUser = $user;
     $this->name = $user->name;
     $this->email = $user->email;
@@ -75,6 +113,12 @@ $delete = function (User $user) {
     if ($user->id === auth()->id()) {
         return;
     }
+
+    // Security check: Non-Super Admin cannot delete Role 0 or users from other locations
+    if (auth()->user()->role !== 0 && ($user->role === 0 || $user->location_id !== auth()->user()->location_id)) {
+        return;
+    }
+
     $user->delete();
 };
 
@@ -82,7 +126,9 @@ $delete = function (User $user) {
 
 <div class="p-6">
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-        <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Manajemen Akun</h2>
+        <div>
+            <p class="text-[10px] text-gray-500 uppercase font-black tracking-widest">Pengaturan Hak Akses Pengguna</p>
+        </div>
         <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
             <!-- Search Input -->
             <div class="relative flex-grow md:flex-grow-0 group">
@@ -95,18 +141,20 @@ $delete = function (User $user) {
             </div>
 
             <!-- Location Filter -->
-            <select wire:model.live="filter_location_id" class="bg-gray-50 dark:bg-gray-700/50 border-transparent rounded-xl text-sm py-2 px-3 focus:bg-white dark:focus:bg-gray-700 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all dark:text-white">
-                <option value="">Semua Lokasi</option>
-                @foreach($this->locations as $loc)
-                    <option value="{{ $loc->id }}">{{ $loc->name }}</option>
-                @endforeach
-            </select>
+            @if(auth()->user()->role === 0)
+                <select wire:model.live="filter_location_id" class="bg-gray-50 dark:bg-gray-700/50 border-transparent rounded-xl text-sm py-2 px-3 focus:bg-white dark:focus:bg-gray-700 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all dark:text-white">
+                    <option value="">Semua Lokasi</option>
+                    @foreach($this->locations as $loc)
+                        <option value="{{ $loc->id }}">{{ $loc->name }}</option>
+                    @endforeach
+                </select>
+            @endif
 
             <button wire:click="$set('showModal', true)" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition duration-300 flex items-center gap-2 shadow-lg whitespace-nowrap">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
                 </svg>
-                Tambah Akun
+                Tambah
             </button>
         </div>
     </div>
@@ -128,18 +176,20 @@ $delete = function (User $user) {
                         <td class="px-6 py-4 dark:text-gray-300">{{ $user->name }}</td>
                         <td class="px-6 py-4 dark:text-gray-300">{{ $user->email }}</td>
                         <td class="px-6 py-4">
-                            <span class="px-3 py-1 {{ $user->role === 0 ? 'bg-purple-100 text-purple-700' : ($user->role === 1 ? 'bg-gray-100 text-gray-700' : 'bg-pink-100 text-pink-700') }} rounded-full text-xs font-medium">
-                                @if($user->role === 0)
-                                    Admin (All)
-                                @elseif($user->role === 1)
-                                    Petugas
-                                @else
-                                    Petugas Loket
-                                @endif
+                            @php
+                                $roleClasses = [
+                                    0 => 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 border-purple-200 dark:border-purple-800',
+                                    1 => 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600',
+                                    2 => 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400 border-pink-200 dark:border-pink-800',
+                                ];
+                                $roleNames = [0 => 'Admin', 1 => 'Petugas', 2 => 'Petugas Loket'];
+                            @endphp
+                            <span class="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border {{ $roleClasses[$user->role] ?? 'bg-gray-100' }}">
+                                {{ $roleNames[$user->role] ?? 'User' }}
                             </span>
                         </td>
                         <td class="px-6 py-4">
-                            <span class="px-3 py-1 bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400 rounded-full text-xs font-medium">
+                            <span class="px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-800/50 rounded-xl text-[10px] font-black uppercase tracking-widest">
                                 {{ $user->location?->name ?? 'Belum Diatur' }}
                             </span>
                         </td>
@@ -190,28 +240,83 @@ $delete = function (User $user) {
                         <input type="password" wire:model="password" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition">
                         @error('password') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Lokasi Penugasan</label>
-                        <select wire:model="location_id" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition">
-                            <option value="">Pilih Lokasi</option>
-                            @foreach($this->locations as $loc)
-                                <option value="{{ $loc->id }}">{{ $loc->name }}</option>
-                            @endforeach
-                        </select>
-                        @error('location_id') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    @if(auth()->user()->role === 0)
+                        <!-- Searchable Location Select -->
+                        <div class="relative" x-data="dropdownSearch" @click.away="close">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 ml-1">Lokasi Penugasan</label>
+                            <div class="mt-1 relative">
+                                <button type="button" @click="toggle" class="relative w-full bg-gray-50 dark:bg-gray-700 border border-transparent rounded-xl py-3 pl-4 pr-10 text-left focus:outline-none focus:ring-4 focus:ring-emerald-500/10 transition-all dark:text-white">
+                                    <span class="block truncate">
+                                        {{ $location_id ? ($this->locations->firstWhere('id', $location_id)->name ?? 'Pilih Lokasi') : 'Pilih Lokasi' }}
+                                    </span>
+                                    <span class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-gray-400">
+                                        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 01.707.293l3 3a1 1 0 01-1.414 1.414L10 5.414 7.707 7.707a1 1 0 01-1.414-1.414l3-3A1 1 0 0110 3zm-3.707 9.293a1 1 0 011.414 0L10 14.586l2.293-2.293a1 1 0 011.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                                    </span>
+                                </button>
+                                <div x-show="open" class="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 shadow-2xl rounded-xl py-1 overflow-hidden border border-gray-100 dark:border-gray-700" x-transition>
+                                    <div class="p-2 border-b border-gray-100 dark:border-gray-700">
+                                        <input type="text" x-model.debounce.300ms="$wire.searchLocationModal" x-ref="searchInput" placeholder="Cari lokasi..." class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border-none rounded-lg text-xs focus:ring-2 focus:ring-emerald-500">
+                                    </div>
+                                    <ul class="max-h-48 overflow-y-auto">
+                                        @forelse($this->locations as $loc)
+                                            <li>
+                                                <button type="button" @click="select('location_id', {{ $loc->id }})" class="w-full text-left px-4 py-2 text-sm hover:bg-emerald-50 dark:hover:bg-emerald-900/20 dark:text-gray-300">
+                                                    {{ $loc->name }}
+                                                </button>
+                                            </li>
+                                        @empty
+                                            <li class="px-4 py-2 text-xs text-gray-500">Lokasi tidak ditemukan</li>
+                                        @endforelse
+                                    </ul>
+                                </div>
+                            </div>
+                            @error('location_id') <span class="text-red-500 text-xs mt-1 block px-1">{{ $message }}</span> @enderror
+                        </div>
+                    @endif
+
+                    <!-- Searchable Role Select -->
+                    <div class="relative" x-data="dropdownSearch({ 
+                        items: [
+                            { id: 2, name: 'Petugas Loket' }
+                            @if(auth()->user()->role === 0),
+                                { id: 1, name: 'Petugas (Lokasi)' },
+                                { id: 0, name: 'Admin' }
+                            @endif
+                        ]
+                    })" @click.away="close">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 ml-1">Peran (Role)</label>
+                        <div class="mt-1 relative">
+                            <button type="button" @click="toggle" class="relative w-full bg-gray-50 dark:bg-gray-700 border border-transparent rounded-xl py-3 pl-4 pr-10 text-left focus:outline-none focus:ring-4 focus:ring-emerald-500/10 transition-all dark:text-white">
+                                <span class="block truncate">
+                                    @php
+                                        $roleMap = [0 => 'Admin', 1 => 'Petugas', 2 => 'Petugas Loket'];
+                                    @endphp
+                                    {{ $roleMap[$role] ?? 'Pilih Peran' }}
+                                </span>
+                                <span class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-gray-400">
+                                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 01.707.293l3 3a1 1 0 01-1.414 1.414L10 5.414 7.707 7.707a1 1 0 01-1.414-1.414l3-3A1 1 0 0110 3zm-3.707 9.293a1 1 0 011.414 0L10 14.586l2.293-2.293a1 1 0 011.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                                </span>
+                            </button>
+                            <div x-show="open" class="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 shadow-2xl rounded-xl py-1 overflow-hidden border border-gray-100 dark:border-gray-700" x-transition>
+                                <div class="p-2 border-b border-gray-100 dark:border-gray-700">
+                                    <input type="text" x-model="search" x-ref="searchInput" placeholder="Cari peran..." class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border-none rounded-lg text-xs focus:ring-2 focus:ring-emerald-500">
+                                </div>
+                                <ul class="max-h-40 overflow-y-auto">
+                                    <template x-for="r in filteredItems" :key="r.id">
+                                        <li>
+                                            <button type="button" @click="select('role', r.id)" class="w-full text-left px-4 py-2 text-sm hover:bg-emerald-50 dark:hover:bg-emerald-900/20 dark:text-gray-300" x-text="r.name"></button>
+                                        </li>
+                                    </template>
+                                    <li x-show="filteredItems.length === 0" class="px-4 py-2 text-xs text-gray-500">Peran tidak ditemukan</li>
+                                </ul>
+                            </div>
+                        </div>
+                        @error('role') <span class="text-red-500 text-xs mt-1 block px-1">{{ $message }}</span> @enderror
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Peran (Role)</label>
-                        <select wire:model="role" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition">
-                            <option value="2">Petugas Loket (Akses Loket)</option>
-                            <option value="1">Petugas (Terbatas Lokasi)</option>
-                            <option value="0">Admin (Semua Lokasi)</option>
-                        </select>
-                        @error('role') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-                    </div>
+
                     <div class="pt-4 flex justify-end gap-3">
                         <button type="button" wire:click="$set('showModal', false)" class="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition">Batal</button>
-                        <button type="submit" class="px-6 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 shadow-md transition">Simpan</button>
+                        <button type="submit" class="px-8 py-3 bg-emerald-600 text-white rounded-xl font-black uppercase tracking-widest hover:bg-emerald-700 shadow-lg shadow-emerald-500/30 transition-all active:scale-95">Simpan</button>
                     </div>
                 </form>
             </div>
