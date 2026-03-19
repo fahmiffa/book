@@ -15,6 +15,15 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
 
         <link rel="icon" type="image/png" href="{{ asset('icon.png') }}">
+        
+        <!-- SweetAlert2 -->
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        
+        <script>
+            window.addEventListener('swal', function(e) {
+                Swal.fire(e.detail);
+            });
+        </script>
     </head>
     <body x-data="{ sidebarOpen: false }" class="font-sans antialiased selection:bg-indigo-500 selection:text-white bg-slate-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 transition-colors duration-300 overflow-x-hidden">
         <div class="min-h-screen relative flex">

@@ -1,7 +1,7 @@
 @php
     $totalBooking = \App\Models\Booking::count();
-    $confirmedBooking = \App\Models\Booking::where('status', 'confirmed')->count();
-    $pendingBooking = \App\Models\Booking::where('status', 'pending')->count();
+    $confirmedBooking = \App\Models\Booking::where('status', 2)->count();
+    $pendingBooking = \App\Models\Booking::whereIn('status', [3, 4])->count();
     $totalLokasi = \App\Models\Location::count();
     $user = auth()->user();
 @endphp
@@ -29,6 +29,7 @@
                     <div class="mt-8 flex flex-wrap gap-4">
                         <a href="{{ route('booking.index') }}" class="px-6 py-3 bg-white text-indigo-600 rounded-2xl font-bold hover:bg-indigo-50 transition transform active:scale-95 shadow-lg">Kelola Booking</a>
                         <a href="{{ route('antrian') }}" class="px-6 py-3 bg-indigo-500/50 text-white border border-indigo-400/30 rounded-2xl font-bold hover:bg-indigo-500/70 transition backdrop-blur-sm shadow-lg">Lihat Antrian Hari Ini</a>
+                        <a href="{{ route('task') }}" class="px-6 py-3 bg-emerald-500 text-white rounded-2xl font-bold hover:bg-emerald-600 transition transform active:scale-95 shadow-lg">Kelola Task</a>
                     </div>
                 </div>
                 
@@ -67,7 +68,7 @@
                         <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">Valid</span>
                     </div>
                     <h4 class="text-4xl font-black text-gray-900 dark:text-white mb-1">{{ $confirmedBooking }}</h4>
-                    <p class="text-sm text-gray-500 font-medium">Booking Dikonfirmasi</p>
+                    <p class="text-sm text-gray-500 font-medium">Booking Serving</p>
                 </div>
 
                 <!-- Stat Card 3 -->

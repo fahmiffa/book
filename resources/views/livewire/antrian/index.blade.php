@@ -236,7 +236,7 @@ $selesaiAction = function () {
                                 </div>
                                 <div>
                                     <span class="px-3 py-1 bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-lg text-[10px] font-black uppercase tracking-widest border border-emerald-100 dark:border-emerald-800">
-                                        Served
+                                        Serving
                                     </span>
                                 </div>
                             </div>
@@ -327,7 +327,21 @@ $selesaiAction = function () {
                              🔊 Panggil
                         </button>
                         <button 
-                            wire:click="selesaiAction"
+                            @click="Swal.fire({
+                                title: 'Selesaikan Antrian?',
+                                text: 'Tandai antrian ini sebagai selesai dan pindahkan ke menu task?',
+                                icon: 'success',
+                                showCancelButton: true,
+                                confirmButtonText: 'Ya, Selesai!',
+                                cancelButtonText: 'Belum',
+                                confirmButtonColor: '#059669',
+                                background: document.documentElement.classList.contains('dark') ? '#1e293b' : '#fff',
+                                color: document.documentElement.classList.contains('dark') ? '#fff' : '#000',
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    $wire.selesaiAction()
+                                }
+                            })"
                             class="px-8 py-4 bg-emerald-600 text-white rounded-[1.5rem] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/30 hover:bg-emerald-700 active:scale-95 transition"
                             @if(!$selectedLoketId) disabled @endif
                         >

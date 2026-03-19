@@ -19,6 +19,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('loket', 'loket')->name('loket');
     Route::view('booking-list', 'booking.index')->name('booking.index');
     Route::view('antrian', 'antrian')->name('antrian');
+    Route::view('task', 'task')->name('task');
 });
 
 Route::view('booking', 'booking.form')->name('booking.form');

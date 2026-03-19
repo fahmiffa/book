@@ -21,6 +21,7 @@ class Booking extends Model
         'location_id',
         'loket_id',
         'status',
+        'catatan',
     ];
 
     /**

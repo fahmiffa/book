@@ -12,7 +12,7 @@ new class extends Component
     {
         $logout();
 
-        $this->redirect('/', navigate: true);
+        $this->redirect(route('login'), navigate: true);
     }
 }; ?>
 
@@ -106,18 +106,27 @@ new class extends Component
                     <p class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">Transaksi</p>
                 </div>
 
-                <x-sidebar-link :href="route('booking.index')" :active="request()->routeIs('booking.index')" wire:navigate>
-                    <x-slot name="icon">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                    </x-slot>
-                    Pendaftaran
-                </x-sidebar-link>
+                @if(auth()->user()->role === 0 || auth()->user()->role === 1)
+                    <x-sidebar-link :href="route('booking.index')" :active="request()->routeIs('booking.index')" wire:navigate>
+                        <x-slot name="icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        </x-slot>
+                        Pendaftaran
+                    </x-sidebar-link>
 
-                <x-sidebar-link :href="route('antrian')" :active="request()->routeIs('antrian')" wire:navigate>
+                    <x-sidebar-link :href="route('antrian')" :active="request()->routeIs('antrian')" wire:navigate>
+                        <x-slot name="icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </x-slot>
+                        Antrian
+                    </x-sidebar-link>
+                @endif
+
+                <x-sidebar-link :href="route('task')" :active="request()->routeIs('task')" wire:navigate>
                     <x-slot name="icon">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
                     </x-slot>
-                    Antrian
+                    Task
                 </x-sidebar-link>
             </div>
 
@@ -133,7 +142,25 @@ new class extends Component
                             <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">{{ auth()->user()->role === 0 ? 'Admin' : 'Petugas' }}</span>
                         </div>
                     </div>
-                    <button wire:click="logout" class="p-2 text-gray-400 hover:text-rose-600 transition-colors" title="Logout">
+                    <button 
+                        @click="Swal.fire({
+                            title: 'Keluar dari Sesi?',
+                            text: 'Anda akan dialihkan ke halaman login.',
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonText: 'Ya, Keluar!',
+                            cancelButtonText: 'Batal',
+                            confirmButtonColor: '#f43f5e',
+                            background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#fff',
+                            color: document.documentElement.classList.contains('dark') ? '#fff' : '#000',
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                $wire.logout()
+                            }
+                        })"
+                        class="p-2 text-gray-400 hover:text-rose-600 transition-colors" 
+                        title="Logout"
+                    >
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                     </button>
                 </div>
