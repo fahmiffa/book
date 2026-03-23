@@ -24,7 +24,7 @@ $lokets = computed(function () {
 });
 
 $loketCounts = computed(function () {
-    return Booking::where('status', '<', 2)
+    return Booking::where('status', 2)
         ->select('loket_id', \Illuminate\Support\Facades\DB::raw('count(*) as total'))
         ->groupBy('loket_id')
         ->pluck('total', 'loket_id');
@@ -32,7 +32,7 @@ $loketCounts = computed(function () {
 
 $tasks = computed(function () {
     $user = auth()->user();
-    $query = Booking::with(['location', 'loket'])->where('status', '<', 2);
+    $query = Booking::with(['location', 'loket'])->where('status', 2);
 
     if ($this->filter_date) {
         $query->whereDate('booking_date', $this->filter_date);

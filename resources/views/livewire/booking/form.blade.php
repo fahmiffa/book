@@ -120,7 +120,7 @@ $submit = function () {
         'booking_time' => $this->booking_time,
         'service' => $this->service,
         'location_id' => $this->location_id,
-        'status' => 4,
+        'status' => 3,
     ]);
 
     // Send Browser/Dashboard Notification
