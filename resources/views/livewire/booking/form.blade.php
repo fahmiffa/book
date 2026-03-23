@@ -6,6 +6,7 @@ use App\Models\Location;
 use App\Models\Service;
 use App\Models\User;
 use App\Notifications\BookingSubmitted;
+use App\Services\WhatsAppService;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Crypt;
@@ -82,19 +83,10 @@ $submit = function () {
         $phone = '62' . substr($phone, 1);
     }
 
-    // WhatsApp Validation API
-    try {
-        $response = Http::post('https://broadcast.qlabcode.com/api/number', [
-            'number' => '085640431181',
-            'to'     => $phone
-        ]);
-
-        if ($response->failed() || !($response->json('status') ?? false)) {
-            $this->addError('whatsapp_number', 'Nomor WhatsApp tidak terdaftar atau tidak valid.');
-            return;
-        }
-    } catch (\Exception $e) {
-        $this->addError('whatsapp_number', 'Gagal memvalidasi nomor saat ini.');
+    // WhatsApp Validation Service
+    $whatsappService = app(WhatsAppService::class);
+    if (!$whatsappService->checkNumber($phone)) {
+        $this->addError('whatsapp_number', 'Nomor WhatsApp tidak terdaftar atau tidak valid.');
         return;
     }
 
@@ -153,25 +145,17 @@ $submit = function () {
     $bookingTimeObj = new \DateTime($this->booking_time);
     $arrivalTime = (clone $bookingTimeObj)->modify("-{$timerInterval} minutes")->format('H:i');
 
-    try {
-        $message = "Halo *{$this->name}*,\n\n" .
-                  "Pendaftaran antrian Anda berhasil!\n" .
-                  "Nomor Antrian: *{$this->booking_code}*\n" .
-                  "Layanan: *{$this->service}*\n" .
-                  "Lokasi: *{$locationName}*\n\n" .
-                  "Waktu Layanan: *{$this->booking_date}* pukul *{$this->booking_time} WIB*\n" .
-                  "Mohon Datang: Paling lambat pukul *{$arrivalTime} WIB* ({$timerInterval} menit sebelumnya).\n\n" .
-                  "Cek Detail Pendaftaran:\n{$checkUrl}\n\n" .
-                  "Terima kasih.";
+    $message = "Halo *{$this->name}*,\n\n" .
+              "Pendaftaran antrian Anda berhasil!\n" .
+              "Nomor Antrian: *{$this->booking_code}*\n" .
+              "Layanan: *{$this->service}*\n" .
+              "Lokasi: *{$locationName}*\n\n" .
+              "Waktu Layanan: *{$this->booking_date}* pukul *{$this->booking_time} WIB*\n" .
+              "Mohon Datang: Paling lambat pukul *{$arrivalTime} WIB* ({$timerInterval} menit sebelumnya).\n\n" .
+              "Cek Detail Pendaftaran:\n{$checkUrl}\n\n" .
+              "Terima kasih.";
 
-        Http::post('https://broadcast.qlabcode.com/api/send', [
-            'number'  => '085640431181',
-            'to'      => $phone,
-            'message' => $message
-        ]);
-    } catch (\Exception $e) {
-        Log::error('Gagal mengirim WhatsApp: ' . $e->getMessage());
-    }
+    $whatsappService->sendMessage($phone, $message);
 };
 
 ?>

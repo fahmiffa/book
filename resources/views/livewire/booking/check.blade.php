@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Booking;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use function Livewire\Volt\{state, mount};
 
 state(['booking' => null]);
@@ -38,9 +39,14 @@ mount(function ($uuid) {
                 </div>
 
                 <!-- Queue Number Highlight -->
-                <div class="bg-indigo-600 rounded-[2.5rem] p-8 text-white text-center shadow-xl shadow-indigo-500/30 transform hover:scale-105 transition-all mb-10">
+                <div class="bg-indigo-600 rounded-[2.5rem] p-8 text-white text-center shadow-xl shadow-indigo-500/30 transform hover:scale-105 transition-all mb-10 flex flex-col items-center">
                     <span class="text-[10px] font-black uppercase tracking-[0.2em] opacity-80">Nomor Antrian Anda</span>
-                    <div class="text-5xl sm:text-7xl font-black mt-2">BK-{{ str_pad($booking->id, 5, '0', STR_PAD_LEFT) }}</div>
+                    <div class="text-5xl sm:text-7xl font-black mt-2 mb-6">BK-{{ str_pad($booking->id, 5, '0', STR_PAD_LEFT) }}</div>
+                    
+                    <div class="p-3 bg-white rounded-2xl shadow-inner">
+                        {!! QrCode::size(120)->generate($booking->uuid) !!}
+                    </div>
+                    <span class="text-[8px] font-bold uppercase tracking-widest mt-3 opacity-60">Scan barcode saat tiba di lokasi</span>
                 </div>
 
                 <!-- Details Grid -->
@@ -109,6 +115,12 @@ mount(function ($uuid) {
         <div class="text-center text-xs mb-4 border-b border-dashed border-black pb-2">BUKTI ANTRIAN LAYANAN</div>
         <div class="text-center text-3xl font-black mb-1">BK-{{ str_pad($booking->id, 5, '0', STR_PAD_LEFT) }}</div>
         <div class="text-center text-[10px] mb-4 border-b border-dashed border-black pb-2">NOMOR ANTRIAN</div>
+        
+        <div class="flex justify-center items-center text-center mb-4 w-full">
+            <div id="qr-code-canvas-container" class="inline-block mx-auto overflow-hidden">
+                {!! QrCode::size(150)->generate($booking->uuid) !!}
+            </div>
+        </div>
         
         <div class="space-y-1 text-[9pt]">
             <div class="flex justify-between"><span>Tgl:</span> <span>{{ date('d/m/Y', strtotime($booking->booking_date)) }}</span></div>

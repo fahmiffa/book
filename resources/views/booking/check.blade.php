@@ -12,7 +12,7 @@
         <livewire:booking.check :uuid="request()->route('uuid')" />
 
         <script>
-            function downloadPDF() {
+            async function downloadPDF() {
                 var jsPDF = window.jspdf.jsPDF;
                 var doc = new jsPDF({ unit: 'mm', format: [58, 150] });
                 var w = 58;
@@ -41,6 +41,36 @@
                 doc.setFontSize(6);
                 doc.text('NOMOR ANTRIAN', cx, y, { align: 'center' });
                 y += 3;
+                doc.line(4, y, w - 4, y);
+                y += 3;
+
+                // QR CODE PDF - Converting SVG to PNG via Canvas for compatibility
+                var qrContainer = document.getElementById('qr-code-canvas-container');
+                var svg = qrContainer ? qrContainer.querySelector('svg') : null;
+                if (svg) {
+                    var canvas = document.createElement('canvas');
+                    canvas.width = 300;
+                    canvas.height = 300;
+                    var ctx = canvas.getContext('2d');
+                    var svgData = new XMLSerializer().serializeToString(svg);
+                    var img = new Image();
+                    var svgBlob = new Blob([svgData], {type: 'image/svg+xml;charset=utf-8'});
+                    var url = URL.createObjectURL(svgBlob);
+                    
+                    await new Promise((resolve) => {
+                        img.onload = resolve;
+                        img.src = url;
+                    });
+                    
+                    ctx.fillStyle = "white";
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    var imgData = canvas.toDataURL("image/png");
+                    doc.addImage(imgData, 'PNG', cx - 15, y, 30, 30);
+                    y += 33;
+                    URL.revokeObjectURL(url);
+                }
+
                 doc.line(4, y, w - 4, y);
                 y += 5;
 
@@ -104,6 +134,11 @@
                     ' .space-y-1 > * + * { margin-top: 4px; }' +
                     ' .flex { display: flex; }' +
                     ' .justify-between { justify-content: space-between; }' +
+                    ' .justify-center { justify-content: center; }' +
+                    ' .items-center { align-items: center; }' +
+                    ' .w-full { width: 100%; }' +
+                    ' .mx-auto { margin-left: auto; margin-right: auto; }' +
+                    ' .inline-block { display: inline-block; }' +
                     ' .border-b { border-bottom: 1px dashed black; }' +
                     ' .border-t { border-top: 1px dashed black; }' +
                     ' .pb-2 { padding-bottom: 8px; }' +
