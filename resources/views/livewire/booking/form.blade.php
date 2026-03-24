@@ -120,7 +120,7 @@ $submit = function () {
         'booking_time' => $this->booking_time,
         'service' => $this->service,
         'location_id' => $this->location_id,
-        'status' => 3,
+        'status' => 4,
     ]);
 
     // Send Browser/Dashboard Notification
@@ -139,7 +139,7 @@ $submit = function () {
 
     $checkUrl = route('booking.check', $booking->uuid);
     $this->booking_uuid = $booking->uuid;
-    $this->booking_code = 'BK-' . str_pad($booking->id, 5, '0', STR_PAD_LEFT);
+    $this->booking_code = 'A-' . str_pad($booking->id, 4, '0', STR_PAD_LEFT);
     $this->submitted = true;
 
     $bookingTimeObj = new \DateTime($this->booking_time);
@@ -288,7 +288,7 @@ $submit = function () {
                     </div>
 
                     <button type="submit" class="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-indigo-500/30 hover:bg-indigo-700 hover:-translate-y-1 transition active:translate-y-0">
-                        Pesan Sekarang
+                        Daftar
                     </button>
                 </form>
             @endif

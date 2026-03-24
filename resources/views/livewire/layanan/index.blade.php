@@ -2,7 +2,13 @@
 
 use Livewire\Volt\Component;
 use App\Models\Service;
-use function Livewire\Volt\{state, rules, computed};
+use function Livewire\Volt\{state, rules, computed, mount};
+
+mount(function () {
+    if (auth()->user()->role === 2) {
+        return $this->redirect(route('dashboard'), navigate: true);
+    }
+});
 
 state(['name' => '', 'editingService' => null, 'showModal' => false]);
 

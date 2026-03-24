@@ -4,7 +4,13 @@ use Livewire\Volt\Component;
 use App\Models\User;
 use App\Models\Location;
 use Illuminate\Support\Facades\Hash;
-use function Livewire\Volt\{state, rules, computed};
+use function Livewire\Volt\{state, rules, computed, mount};
+
+mount(function () {
+    if (auth()->user()->role === 2) {
+        return $this->redirect(route('dashboard'), navigate: true);
+    }
+});
 
 state([
     'name' => '', 
@@ -22,7 +28,7 @@ state([
 rules(fn () => [
     'name' => 'required|min:3',
     'email' => 'required|email|unique:users,email,' . ($this->editingUser?->id ?? 'NULL'),
-    'password' => 'nullable|min:8',
+    // 'password' => 'nullable|min:8',
     'location_id' => 'required|exists:locations,id',
     'role' => 'required|integer',
 ]);
@@ -81,7 +87,7 @@ $save = function () {
         }
         $this->editingUser->update($data);
     } else {
-        $this->validate(['password' => 'required|min:8']);
+        // $this->validate(['password' => 'required|min:8']);
         User::create([
             'name' => $this->name,
             'email' => $this->email,

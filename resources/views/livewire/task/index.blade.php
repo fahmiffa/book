@@ -20,6 +20,9 @@ state([
 $lokets = computed(function () {
     $user = auth()->user();
     if ($user->role === 0) return App\Models\Loket::all();
+    if ($user->role === 1) {
+        return App\Models\Loket::where('location_id', $user->location_id)->get();
+    }
     return $user->loket ? collect([$user->loket]) : collect();
 });
 
@@ -32,21 +35,27 @@ $loketCounts = computed(function () {
 
 $tasks = computed(function () {
     $user = auth()->user();
-    $query = Booking::with(['location', 'loket'])->where('status', 2);
+    $query = Booking::with(['location', 'loket'])->whereIn('status', [1, 2]);
 
     if ($this->filter_date) {
         $query->whereDate('booking_date', $this->filter_date);
     }
 
-    if ($user->role !== 0) {
+    if ($user->role === 2) {
         $myLoketId = $user->loket?->id;
         if ($myLoketId) {
             $query->where('loket_id', $myLoketId);
         } else {
             $query->whereRaw('1 = 0');
         }
-    } elseif ($this->selectedLoketId) {
-        $query->where('loket_id', $this->selectedLoketId);
+    } else {
+        if ($user->role === 1) {
+            $query->where('location_id', $user->location_id);
+        }
+        
+        if ($this->selectedLoketId) {
+            $query->where('loket_id', $this->selectedLoketId);
+        }
     }
 
     if ($this->search) {
@@ -127,7 +136,7 @@ $closeVerif = function () {
         >
             <x-slot name="extraFilters">
                 {{-- Loket Filter Tabs --}}
-                @if(auth()->user()->role === 0)
+                @if(auth()->user()->role === 0 || auth()->user()->role === 1)
                     <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                         <button 
                             wire:click="$set('selectedLoketId', null)"
@@ -212,13 +221,19 @@ $closeVerif = function () {
                                     Batal
                                 </div>
                             @else
-                                <button 
-                                    wire:click="openVerif({{ $task->id }})"
-                                    class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/30 transition active:scale-95"
-                                >
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                    Verifikasi
-                                </button>
+                                @if(auth()->user()->role === 2 || auth()->user()->role === 0)
+                                    <button 
+                                        wire:click="openVerif({{ $task->id }})"
+                                        class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/30 transition active:scale-95"
+                                    >
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        Verifikasi
+                                    </button>
+                                @else
+                                    <div class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400 rounded-xl text-[10px] font-black uppercase tracking-widest border border-gray-200 dark:border-gray-700">
+                                        Read Only
+                                    </div>
+                                @endif
                             @endif
                         </td>
                     </tr>
@@ -271,7 +286,9 @@ $closeVerif = function () {
                             </div>
                             
                             @if($task->status !== 1 && $task->status !== 0)
-                                <button @click="openVerif({{ $task->id }})" class="px-3 py-2 bg-emerald-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20 transition group-active:scale-90">Verifikasi</button>
+                                @if(auth()->user()->role === 2 || auth()->user()->role === 0)
+                                    <button @click="openVerif({{ $task->id }})" class="px-3 py-2 bg-emerald-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20 transition group-active:scale-90">Verifikasi</button>
+                                @endif
                             @else
                                 <div class="p-2 bg-white dark:bg-gray-800 rounded-lg text-emerald-500">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>

@@ -25,4 +25,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::view('booking', 'booking.form')->name('booking.form');
 Route::view('booking/check/{uuid}', 'booking.check')->name('booking.check');
 
+Route::get('display/{location}', function (App\Models\Location $location) {
+    return view('display', ['location' => $location]);
+})->name('display.public');
+
 require __DIR__.'/auth.php';

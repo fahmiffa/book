@@ -139,7 +139,15 @@ new class extends Component
                         </div>
                         <div class="flex flex-col">
                             <span class="text-xs font-black text-gray-900 dark:text-white truncate max-w-[120px]">{{ auth()->user()->name }}</span>
-                            <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">{{ auth()->user()->role === 0 ? 'Admin' : 'Petugas' }}</span>
+                            <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">
+                                @if(auth()->user()->role === 0)
+                                    Admin
+                                @elseif(auth()->user()->role === 1)
+                                    Petugas
+                                @else
+                                    Petugas Loket
+                                @endif
+                            </span>
                         </div>
                     </div>
                     <button 

@@ -45,9 +45,17 @@ $locations = computed(function () {
     return Location::all();
 });
 
-$users = computed(fn () => User::where('role', 2)
-    ->when($this->location_id, fn($q) => $q->where('location_id', $this->location_id))
-    ->get());
+$users = computed(function () {
+    $assignedUserIds = Loket::whereNotNull('user_id')
+        ->when($this->editingLoket, fn($q) => $q->where('id', '!=', $this->editingLoket->id))
+        ->pluck('user_id')
+        ->toArray();
+
+    return User::where('role', 2)
+        ->whereNotIn('id', $assignedUserIds)
+        ->when($this->location_id, fn($q) => $q->where('location_id', $this->location_id))
+        ->get();
+});
 
 updated(['location_id' => function () {
     $this->user_id = '';
@@ -77,7 +85,23 @@ $save = function () {
         ]);
     }
 
-    $this->reset(['name', 'location_id', 'user_id', 'editingLoket', 'showModal']);
+    if ($user->role === 0) {
+        $this->reset(['name', 'location_id', 'user_id', 'editingLoket', 'showModal']);
+    } else {
+        $this->reset(['name', 'user_id', 'editingLoket', 'showModal']);
+        $this->location_id = $user->location_id; // Keep location_id for non-Super Admins
+    }
+};
+
+$openCreate = function () {
+    $user = auth()->user();
+    $this->reset(['name', 'user_id', 'editingLoket']);
+    if ($user->role === 0) {
+        $this->location_id = '';
+    } else {
+        $this->location_id = $user->location_id;
+    }
+    $this->showModal = true;
 };
 
 $edit = function (Loket $loket) {
@@ -106,7 +130,7 @@ $delete = function (Loket $loket) {
         <div>
             <p class="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] mb-1">Pengaturan Loket Layanan</p>
         </div>
-        <button wire:click="$set('showModal', true)" class="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white rounded-lg transition duration-300 flex items-center gap-2 shadow-lg">
+        <button wire:click="openCreate" class="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white rounded-lg transition duration-300 flex items-center gap-2 shadow-lg">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
             </svg>

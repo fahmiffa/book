@@ -41,7 +41,7 @@ mount(function ($uuid) {
                 <!-- Queue Number Highlight -->
                 <div class="bg-indigo-600 rounded-[2.5rem] p-8 text-white text-center shadow-xl shadow-indigo-500/30 transform hover:scale-105 transition-all mb-10 flex flex-col items-center">
                     <span class="text-[10px] font-black uppercase tracking-[0.2em] opacity-80">Nomor Antrian Anda</span>
-                    <div class="text-5xl sm:text-7xl font-black mt-2 mb-6">BK-{{ str_pad($booking->id, 5, '0', STR_PAD_LEFT) }}</div>
+                    <div class="text-5xl sm:text-7xl font-black mt-2 mb-6">A-{{ str_pad($booking->id, 4, '0', STR_PAD_LEFT) }}</div>
                     
                     <div class="p-3 bg-white rounded-2xl shadow-inner">
                         {!! QrCode::size(120)->generate($booking->uuid) !!}
@@ -113,7 +113,7 @@ mount(function ($uuid) {
     <div id="thermal-receipt" class="hidden font-mono text-[10pt] text-black bg-white p-4" style="width: 58mm;">
         <div class="text-center font-bold text-lg mb-2">{{ config('app.name') }}</div>
         <div class="text-center text-xs mb-4 border-b border-dashed border-black pb-2">BUKTI ANTRIAN LAYANAN</div>
-        <div class="text-center text-3xl font-black mb-1">BK-{{ str_pad($booking->id, 5, '0', STR_PAD_LEFT) }}</div>
+        <div class="text-center text-3xl font-black mb-1">A-{{ str_pad($booking->id, 4, '0', STR_PAD_LEFT) }}</div>
         <div class="text-center text-[10px] mb-4 border-b border-dashed border-black pb-2">NOMOR ANTRIAN</div>
         
         <div class="flex justify-center items-center text-center mb-4 w-full">

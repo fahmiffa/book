@@ -3,7 +3,13 @@
 use Livewire\Volt\Component;
 use App\Models\Booking;
 use Livewire\WithPagination;
-use function Livewire\Volt\{state, computed, on, usesPagination};
+use function Livewire\Volt\{state, computed, on, usesPagination, mount};
+
+mount(function () {
+    if (auth()->user()->role === 2) {
+        return $this->redirect(route('dashboard'), navigate: true);
+    }
+});
 
 usesPagination();
 
@@ -86,10 +92,10 @@ $updateStatus = function ($bookingId, $status) {
 
             <x-slot name="tbody">
                 @forelse($this->bookings as $booking)
-                    <tr @click="openModal({{ $booking->id }})" class="group hover:bg-white dark:hover:bg-gray-700/50 transition-all duration-300 cursor-pointer">
+                    <tr @click="$wire.openModal({{ $booking->id }})" class="group hover:bg-white dark:hover:bg-gray-700/50 transition-all duration-300 cursor-pointer">
                         <td class="px-6 py-5 whitespace-nowrap first:rounded-l-2xl last:rounded-r-2xl">
                             <span class="px-2.5 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-xl font-black text-[11px] tracking-tighter shadow-sm border border-indigo-100 dark:border-indigo-800">
-                                BK-{{ str_pad($booking->id, 5, '0', STR_PAD_LEFT) }}
+                                A-{{ str_pad($booking->id, 4, '0', STR_PAD_LEFT) }}
                             </span>
                         </td>
                         <td class="px-6 py-5 whitespace-nowrap">
@@ -124,31 +130,20 @@ $updateStatus = function ($bookingId, $status) {
                                     4 => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800',
                                     3 => 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800',
                                     2 => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800',
+                                    1 => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800',
                                     0 => 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 border-rose-200 dark:border-rose-800',
                                 ];
                                 $statusNames = [
                                     4 => 'Booked',
                                     3 => 'Check In',
                                     2 => 'Serving',
+                                    1 => 'Selesai',
                                     0 => 'Batal',
                                 ];
                             @endphp
                             <span 
                                 @if($booking->status === 4)
-                                    @click.stop="Swal.fire({
-                                        title: 'Konfirmasi Check In?',
-                                        text: 'Daftarkan pendaftar ke dalam antrian hari ini?',
-                                        icon: 'question',
-                                        showCancelButton: true,
-                                        confirmButtonText: 'Ya, Check In!',
-                                        confirmButtonColor: '#4f46e5',
-                                        background: document.documentElement.classList.contains('dark') ? '#1e293b' : '#fff',
-                                        color: document.documentElement.classList.contains('dark') ? '#fff' : '#000',
-                                    }).then((result) => {
-                                        if (result.isConfirmed) {
-                                            $wire.updateStatus({{ $booking->id }}, 3)
-                                        }
-                                    })"
+                                    @click.stop="bookingActions.checkIn({{ $booking->id }}, $wire)"
                                     class="px-2.5 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider border transition-all duration-300 {{ $statusColors[$booking->status] ?? 'bg-gray-100 text-gray-600' }} hover:scale-110 cursor-pointer shadow-sm active:scale-95"
                                 @else
                                     class="px-2.5 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider border transition-all duration-300 {{ $statusColors[$booking->status] ?? 'bg-gray-100 text-gray-600' }}"
@@ -172,7 +167,7 @@ $updateStatus = function ($bookingId, $status) {
 
             <x-slot name="mobile">
                 @forelse($this->bookings as $booking)
-                    <div @click="openModal({{ $booking->id }})" class="bg-white dark:bg-gray-800 p-4 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden cursor-pointer active:scale-95 transition-transform">
+                    <div @click="$wire.openModal({{ $booking->id }})" class="bg-white dark:bg-gray-800 p-4 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden cursor-pointer active:scale-95 transition-transform">
                         <div class="flex justify-between items-center mb-4 gap-2">
                             <span class="px-2.5 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-xl font-black text-[10px] tracking-tight border border-indigo-100 dark:border-indigo-800 shrink-0">
                                 BK-{{ str_pad($booking->id, 5, '0', STR_PAD_LEFT) }}
@@ -182,12 +177,14 @@ $updateStatus = function ($bookingId, $status) {
                                     4 => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800',
                                     3 => 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800',
                                     2 => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800',
+                                    1 => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800',
                                     0 => 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 border-rose-200 dark:border-rose-800',
                                 ];
                                 $statusNames = [
                                     4 => 'Booked',
                                     3 => 'Check In',
                                     2 => 'Serving',
+                                    1 => 'Selesai',
                                     0 => 'Batal',
                                 ];
                             @endphp
@@ -248,7 +245,7 @@ $updateStatus = function ($bookingId, $status) {
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
                     <h3 class="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Detail Pendaftaran</h3>
-                    <p class="text-xs text-gray-500 mt-1 uppercase tracking-widest font-bold">BK-{{ str_pad($selectedBooking->id, 5, '0', STR_PAD_LEFT) }}</p>
+                    <p class="text-xs text-gray-500 mt-1 uppercase tracking-widest font-bold">A-{{ str_pad($this->selectedBooking->id, 4, '0', STR_PAD_LEFT) }}</p>
                 </div>
 
                 <div class="p-8 space-y-6">
@@ -277,8 +274,8 @@ $updateStatus = function ($bookingId, $status) {
                     <div class="p-4 bg-gray-50 dark:bg-gray-900 rounded-2xl">
                          <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Status Saat Ini</p>
                          @php
-                             $statusColors = [4 => 'bg-blue-100 text-blue-700 border-blue-200', 3 => 'bg-indigo-100 text-indigo-700 border-indigo-200', 2 => 'bg-emerald-100 text-emerald-700 border-emerald-200', 0 => 'bg-rose-100 text-rose-700 border-rose-200'];
-                             $statusNames = [4 => 'Booked', 3 => 'Check In', 2 => 'Serving', 0 => 'Batal'];
+                             $statusColors = [4 => 'bg-blue-100 text-blue-700 border-blue-200', 3 => 'bg-indigo-100 text-indigo-700 border-indigo-200', 2 => 'bg-emerald-100 text-emerald-700 border-emerald-200', 1 => 'bg-emerald-100 text-emerald-700 border-emerald-200', 0 => 'bg-rose-100 text-rose-700 border-rose-200'];
+                             $statusNames = [4 => 'Booked', 3 => 'Check In', 2 => 'Serving', 1 => 'Selesai', 0 => 'Batal'];
                          @endphp
                          <span class="inline-block px-3 py-1 bg-white dark:bg-gray-800 rounded-lg text-[10px] font-black uppercase tracking-widest border {{ $statusColors[$selectedBooking->status] ?? '' }}">
                             {{ $statusNames[$selectedBooking->status] ?? '-' }}
@@ -290,22 +287,7 @@ $updateStatus = function ($bookingId, $status) {
                     <div class="flex-1 flex gap-3 w-full">
                         @if($selectedBooking->status === 4)
                             <button 
-                                @click="Swal.fire({
-                                    title: 'Konfirmasi Check In?',
-                                    text: 'Daftarkan pendaftar ke dalam antrian hari ini?',
-                                    icon: 'question',
-                                    showCancelButton: true,
-                                    confirmButtonText: 'Ya, Check In!',
-                                    cancelButtonText: 'Batal',
-                                    confirmButtonColor: '#4f46e5',
-                                    background: document.documentElement.classList.contains('dark') ? '#1e293b' : '#fff',
-                                    color: document.documentElement.classList.contains('dark') ? '#fff' : '#000',
-                                }).then((result) => {
-                                    if (result.isConfirmed) {
-                                        $wire.updateStatus({{ $selectedBooking->id }}, 3)
-                                        $wire.closeModal()
-                                    }
-                                })"
+                                @click="bookingActions.checkIn({{ $selectedBooking->id }}, $wire)"
                                 class="flex-1 py-4 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest shadow-lg shadow-indigo-500/30 hover:bg-indigo-700 active:scale-95 transition"
                             >
                                 Check In
@@ -314,20 +296,7 @@ $updateStatus = function ($bookingId, $status) {
                         
                         @if($selectedBooking->status !== 0)
                             <button 
-                                @click="Swal.fire({
-                                    title: 'Batalkan Pendaftaran?',
-                                    icon: 'warning',
-                                    showCancelButton: true,
-                                    confirmButtonText: 'Ya, Batalkan',
-                                    confirmButtonColor: '#f43f5e',
-                                    background: document.documentElement.classList.contains('dark') ? '#1e293b' : '#fff',
-                                    color: document.documentElement.classList.contains('dark') ? '#fff' : '#000',
-                                }).then((result) => {
-                                    if (result.isConfirmed) {
-                                        $wire.updateStatus({{ $selectedBooking->id }}, 0)
-                                        $wire.closeModal()
-                                    }
-                                })"
+                                @click="bookingActions.cancel({{ $selectedBooking->id }}, $wire)"
                                 class="px-6 py-4 bg-rose-50 text-rose-600 dark:bg-rose-900/20 rounded-2xl font-black uppercase tracking-widest border border-rose-100 dark:border-rose-800 hover:bg-rose-100 active:scale-95 transition"
                             >
                                 Batal
@@ -338,4 +307,44 @@ $updateStatus = function ($bookingId, $status) {
             </div>
         </div>
     @endif
+
+    <script>
+        window.bookingActions = {
+            checkIn(id, wire) {
+                Swal.fire({
+                    title: 'Konfirmasi Check In?',
+                    text: 'Daftarkan pendaftar ke dalam antrian hari ini?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Check In!',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#4f46e5',
+                    background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#fff',
+                    color: document.documentElement.classList.contains('dark') ? '#fff' : '#000',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        wire.updateStatus(id, 3);
+                        if (typeof wire.closeModal === 'function') wire.closeModal();
+                    }
+                });
+            },
+            cancel(id, wire) {
+                Swal.fire({
+                    title: 'Batalkan Pendaftaran?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Batalkan',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#f43f5e',
+                    background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#fff',
+                    color: document.documentElement.classList.contains('dark') ? '#fff' : '#000',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        wire.updateStatus(id, 0);
+                        if (typeof wire.closeModal === 'function') wire.closeModal();
+                    }
+                });
+            }
+        };
+    </script>
 </div>
