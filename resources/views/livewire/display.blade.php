@@ -41,11 +41,42 @@ $checkNewCall = function () {
     if ($booking && ($booking->id !== $this->last_call_id || $booking->updated_at->toDateTimeString() !== $this->last_call_time)) {
         
         $idStr = str_pad($booking->id, 4, '0', STR_PAD_LEFT);
-        $formattedCode = 'A, ' . implode(', ', str_split($idStr));
-        $formattedCode = str_replace('0', 'kosong', $formattedCode);
-        $text = "Nomor antrian, {$formattedCode}, atas nama, {$booking->name}. Silakan menuju " . ($booking->loket?->name ?? 'Loket');
+        $numberChars = str_split($idStr);
         
-        $this->dispatch('panggil-publik', text: $text);
+        $audioList = [];
+        $audioList[] = asset('audio/kata_umum/nomor_antrian.wav');
+        $audioList[] = asset('audio/huruf/A.wav');
+        
+        foreach ($numberChars as $char) {
+            $audioList[] = asset('audio/angka/' . $char . '.wav');
+        }
+        
+        $audioList[] = asset('audio/kata_umum/silakan_ke.wav');
+        
+        $loketName = mb_strtolower($booking->loket?->name ?? 'loket 1');
+        
+        if (str_contains($loketName, 'loket')) {
+            $audioList[] = asset('audio/kata_umum/loket.wav');
+        } elseif (str_contains($loketName, 'customer service') || str_contains($loketName, 'cs')) {
+            $audioList[] = asset('audio/kata_umum/customer_service.wav');
+        } elseif (str_contains($loketName, 'meja')) {
+            $audioList[] = asset('audio/kata_umum/meja.wav');
+        } elseif (str_contains($loketName, 'teller')) {
+            $audioList[] = asset('audio/kata_umum/teller.wav');
+        } else {
+            $audioList[] = asset('audio/kata_umum/loket.wav');
+        }
+        
+        preg_match_all('/\d+/', $loketName, $matches);
+        if (!empty($matches[0])) {
+            $numberStr = (string)$matches[0][0];
+            $loketChars = str_split($numberStr);
+            foreach ($loketChars as $lChar) {
+                $audioList[] = asset('audio/angka/' . $lChar . '.wav');
+            }
+        }
+        
+        $this->dispatch('panggil-publik', audio: $audioList);
         
         $this->last_call_id = $booking->id;
         $this->last_call_time = $booking->updated_at->toDateTimeString();
@@ -57,20 +88,71 @@ $checkNewCall = function () {
 <div class="min-h-screen bg-[#05050a] text-white p-6 sm:p-10 flex flex-col gap-8 overflow-hidden font-sans selection:bg-indigo-500/30" 
      wire:poll.3s="checkNewCall"
      x-data="{
+        audioEnabled: false,
+        voices: [],
+        init() {
+            // Load voices
+            const loadVoices = () => {
+                this.voices = window.speechSynthesis.getVoices();
+            };
+            loadVoices();
+            if (window.speechSynthesis.onvoiceschanged !== undefined) {
+                window.speechSynthesis.onvoiceschanged = loadVoices;
+            }
+        },
+        enableAudio() {
+            this.audioEnabled = true;
+            // Speak an empty string to unlock audio context in some browsers
+            this.panggilSuara('');
+        },
         panggilSuara(text) {
+            console.log(text);
             if (!window.speechSynthesis) return;
+            
             window.speechSynthesis.cancel();
+            
+            // If empty text (unlocking), just return
+            if (!text) return;
+
             const utterance = new SpeechSynthesisUtterance(text);
-            const voices = window.speechSynthesis.getVoices();
-            const idVoice = voices.find(v => v.lang.includes('id') || v.name.toLowerCase().includes('indonesia'));
-            if (idVoice) utterance.voice = idVoice;
+            
+            // Find Indonesian voice
+            const idVoice = this.voices.find(v => v.lang.includes('id') || v.name.toLowerCase().includes('indonesia'));
+            
+            if (idVoice) {
+                utterance.voice = idVoice;
+            } else {
+                // Fallback: try searching again in case voices were updated
+                const latestVoices = window.speechSynthesis.getVoices();
+                const fallbackIdVoice = latestVoices.find(v => v.lang.includes('id') || v.name.toLowerCase().includes('indonesia'));
+                if (fallbackIdVoice) utterance.voice = fallbackIdVoice;
+            }
+
             utterance.lang = 'id-ID';
             utterance.rate = 0.85;
+            utterance.pitch = 1;
+
             window.speechSynthesis.speak(utterance);
         }
      }"
      @panggil-publik.window="panggilSuara($event.detail.text)">
     
+    <!-- Audio Unlock Overlay -->
+    <template x-if="!audioEnabled">
+        <div class="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center">
+            <div class="max-w-md bg-white/[0.05] p-10 rounded-[3rem] border border-white/10 shadow-2xl">
+                <div class="w-24 h-24 bg-indigo-600 rounded-full flex items-center justify-center mb-8 mx-auto animate-pulse">
+                    <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15.536a5 5 0 001.414 1.414m2.828-9.9a9 9 0 010 12.728M5.586 15.536a5 5 0 001.414 1.414M5 8v8a2 2 0 002 2h3l4 4V4l-4 4H7a2 2 0 00-2 2z"></path></svg>
+                </div>
+                <h2 class="text-3xl font-black mb-4">Sistem Suara Nonaktif</h2>
+                <p class="text-slate-400 mb-8 font-medium">Klik tombol di bawah untuk mengaktifkan panggilan suara otomatis.</p>
+                <button @click="enableAudio()" class="w-full py-5 bg-indigo-600 hover:bg-indigo-500 rounded-2xl font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-500/30 active:scale-95">
+                    Aktifkan Suara
+                </button>
+            </div>
+        </div>
+    </template>
+
     <!-- Animated Background Mesh -->
     <div class="fixed inset-0 overflow-hidden pointer-events-none opacity-40">
         <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-600/20 blur-[120px] rounded-full animate-blob"></div>
@@ -88,7 +170,13 @@ $checkNewCall = function () {
                 </div>
             </div>
             <div>
-                <h1 class="text-3xl font-black uppercase tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-gray-400">Antrian Pelayanan</h1>
+                <div class="flex items-center gap-4">
+                    <h1 class="text-3xl font-black uppercase tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-gray-400">Antrian Pelayanan</h1>
+                    <!-- Test Audio Button (only visible to operators, but here small for debug) -->
+                    <button @click="panggilSuara(['/audio/kata_umum/nomor_antrian.wav', '/audio/huruf/A.wav', '/audio/angka/0.wav', '/audio/angka/0.wav', '/audio/angka/0.wav', '/audio/angka/1.wav', '/audio/kata_umum/silakan_ke.wav', '/audio/kata_umum/loket.wav', '/audio/angka/1.wav'])" class="p-2 bg-white/5 rounded-lg border border-white/10 opacity-20 hover:opacity-100 transition shadow-sm" title="Tes Suara">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5L6 9H2v6h4l5 4V5zM15.54 8.46a5 5 0 010 7.07M19.07 4.93a9 9 0 010 12.73"></path></svg>
+                    </button>
+                </div>
                 @php $currentLocation = \App\Models\Location::find($location_id); @endphp
                 <p class="text-indigo-400/80 font-bold uppercase tracking-[0.4em] text-[10px] sm:text-xs mt-1.5 flex items-center gap-2">
                     <span class="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(99,102,241,0.8)]"></span>
@@ -104,6 +192,7 @@ $checkNewCall = function () {
             </div>
         </div>
     </div>
+
 
     <!-- Main Content Grid -->
     <div class="flex-1 grid grid-cols-12 gap-10 min-h-0 z-10">
