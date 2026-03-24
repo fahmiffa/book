@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Loket extends Model
 {
-    protected $fillable = ['name', 'location_id', 'user_id'];
+    protected $fillable = ['name', 'type', 'location_id', 'user_id'];
 
     public function location()
     {

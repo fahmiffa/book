@@ -6,7 +6,7 @@ use App\Models\Location;
 use App\Models\User;
 use function Livewire\Volt\{state, rules, computed, mount, updated};
 
-state(['name' => '', 'location_id' => '', 'user_id' => '', 'editingLoket' => null, 'showModal' => false]);
+state(['name' => '', 'type' => 'loket', 'location_id' => '', 'user_id' => '', 'editingLoket' => null, 'showModal' => false]);
 
 mount(function () {
     // Role 2 (Petugas) cannot access this page
@@ -22,6 +22,7 @@ mount(function () {
 
 rules([
     'name' => 'required|min:2',
+    'type' => 'required|in:loket,meja,teller,customer service',
     'location_id' => 'required|exists:locations,id',
     'user_id' => 'required|exists:users,id',
 ]);
@@ -74,12 +75,14 @@ $save = function () {
     if ($this->editingLoket) {
         $this->editingLoket->update([
             'name' => $this->name,
+            'type' => $this->type,
             'location_id' => $this->location_id,
             'user_id' => $this->user_id,
         ]);
     } else {
         Loket::create([
             'name' => $this->name,
+            'type' => $this->type,
             'location_id' => $this->location_id,
             'user_id' => $this->user_id,
         ]);
@@ -95,7 +98,8 @@ $save = function () {
 
 $openCreate = function () {
     $user = auth()->user();
-    $this->reset(['name', 'user_id', 'editingLoket']);
+    $this->reset(['name', 'type', 'user_id', 'editingLoket']);
+    $this->type = 'loket';
     if ($user->role === 0) {
         $this->location_id = '';
     } else {
@@ -111,6 +115,7 @@ $edit = function (Loket $loket) {
     
     $this->editingLoket = $loket;
     $this->name = $loket->name;
+    $this->type = $loket->type ?? 'loket';
     $this->location_id = $loket->location_id;
     $this->user_id = $loket->user_id;
     $this->showModal = true;
@@ -144,7 +149,10 @@ $delete = function (Loket $loket) {
                 <div class="p-5">
                     <div class="flex justify-between items-start">
                         <div>
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ $loket->name }}</h3>
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white uppercase">{{ $loket->name }}</h3>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-400 mt-1 uppercase tracking-wider">
+                                {{ $loket->type }}
+                            </span>
                             <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -190,9 +198,24 @@ $delete = function (Loket $loket) {
                 </div>
                 <form wire:submit="save" class="p-6 space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nama Loket</label>
-                        <input type="text" wire:model="name" placeholder="Contoh: Loket 1" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-pink-500 focus:ring-pink-500 transition">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nomor Loket</label>
+                        <select wire:model="name" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-pink-500 focus:ring-pink-500 transition text-sm">
+                            <option value="">Pilih Nomor</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                        </select>
                         @error('name') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tipe Pelayanan</label>
+                        <select wire:model="type" class="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-pink-500 focus:ring-pink-500 transition uppercase text-sm">
+                            <option value="loket">Loket</option>
+                            <option value="meja">Meja</option>
+                            <option value="teller">Teller</option>
+                            <option value="customer service">Customer Service</option>
+                        </select>
+                        @error('type') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                     </div>
                     <!-- Searchable Location Select -->
                     @if(auth()->user()->role === 0)
