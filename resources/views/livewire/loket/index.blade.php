@@ -21,7 +21,7 @@ mount(function () {
 });
 
 rules([
-    'name' => 'required|min:2',
+    // 'name' => 'required|min:2',
     'type' => 'required|in:loket,meja,teller,customer service',
     'location_id' => 'required|exists:locations,id',
     'user_id' => 'required|exists:users,id',
