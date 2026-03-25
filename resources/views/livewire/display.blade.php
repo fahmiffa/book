@@ -37,16 +37,14 @@ $lastCalled = computed(function () {
 
 $totalCalled = computed(function () {
     return Booking::where('location_id', $this->location_id)
-        ->whereNotNull('loket_id')
-        ->whereIn('status', [2, 3]) // Called or Completed
+        ->where('status', 2) // Sudah dipanggil
         ->whereDate('booking_date', now()->format('Y-m-d'))
         ->count();
 });
 
 $totalPending = computed(function () {
     return Booking::where('location_id', $this->location_id)
-        ->whereNull('loket_id')
-        ->where('status', 1) // Pending
+        ->where('status', 3) // Belum dipanggil
         ->whereDate('booking_date', now()->format('Y-m-d'))
         ->count();
 });
@@ -101,8 +99,8 @@ $checkNewCall = function () {
 
 ?>
 
-<div class="min-h-screen bg-[#05050a] text-white p-6 sm:p-10 flex flex-col gap-8 overflow-hidden font-sans selection:bg-indigo-500/30" 
-     wire:poll.3s="checkNewCall"
+<div class="h-screen bg-[#05050a] text-white p-4 sm:p-6 lg:p-8 flex flex-col gap-4 sm:gap-6 overflow-hidden font-sans selection:bg-indigo-500/30" 
+     wire:poll.5s="checkNewCall"
      x-data="{
         audioEnabled: false,
         audioQueue: [],
@@ -246,10 +244,10 @@ $checkNewCall = function () {
 
 
     <!-- Main Content Grid -->
-    <div class="flex-1 grid grid-cols-12 gap-6 sm:gap-10 min-h-0 z-10">
+    <div class="flex-1 grid grid-cols-12 gap-6 sm:gap-10 min-h-0 z-10 overflow-hidden">
         <!-- Call Status Panel (Master Box) -->
-        <div class="col-span-12 lg:col-span-7 flex flex-col min-h-[300px] sm:min-h-[450px]">
-            <div class="flex-1 bg-gradient-to-br from-indigo-600/90 via-indigo-700/80 to-blue-800/90 rounded-[2.5rem] sm:rounded-[4rem] p-6 sm:p-12 flex flex-col items-center justify-center text-center shadow-[0_32px_64px_-16px_rgba(0,0,0,0.6)] relative overflow-hidden border border-white/20 group">
+        <div class="col-span-12 lg:col-span-7 flex flex-col h-full min-h-0">
+            <div class="flex-1 bg-gradient-to-br from-indigo-600/90 via-indigo-700/80 to-blue-800/90 rounded-[2.5rem] sm:rounded-[4rem] p-6 sm:p-8 lg:p-12 flex flex-col items-center justify-center text-center shadow-[0_32px_64px_-16px_rgba(0,0,0,0.6)] relative overflow-hidden border border-white/20 group">
                 
                 <!-- Inner Glow & Pattern -->
                 <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent opacity-50"></div>
@@ -294,7 +292,7 @@ $checkNewCall = function () {
         </div>
 
         <!-- Sidebar Loket States -->
-        <div class="col-span-12 lg:col-span-5 flex flex-col gap-4 sm:gap-6 overflow-y-auto lg:pr-4 sm:max-h-[75vh] custom-scrollbar pb-10">
+        <div class="col-span-12 lg:col-span-5 flex flex-col gap-4 sm:gap-6 overflow-y-auto lg:pr-4 h-full custom-scrollbar pb-4 sm:pb-10">
             @foreach($this->lokets as $loket)
                 @php 
                     $current = App\Models\Booking::where('loket_id', $loket->id)
@@ -338,7 +336,7 @@ $checkNewCall = function () {
     </div>
 
     <!-- Bottom Marquee Bar -->
-    <div class="relative h-20 bg-white/[0.03] backdrop-blur-xl rounded-[2rem] overflow-hidden border border-white/10 flex items-center z-20 group mt-auto">
+    <div class="relative h-14 sm:h-20 bg-white/[0.03] backdrop-blur-xl rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden border border-white/10 flex items-center z-20 group mt-auto shrink-0">
         <div class="absolute inset-y-0 left-0 w-40 bg-gradient-to-r from-slate-950 to-transparent z-10"></div>
         <div class="absolute inset-y-0 right-0 w-40 bg-gradient-to-l from-slate-950 to-transparent z-10"></div>
         <div class="whitespace-nowrap flex items-center gap-24 sm:gap-40 animate-marquee py-2 px-20">
