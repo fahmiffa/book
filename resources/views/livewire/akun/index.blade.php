@@ -182,17 +182,13 @@ $delete = function (User $user) {
                         <td class="px-6 py-4 dark:text-gray-300">{{ $user->name }}</td>
                         <td class="px-6 py-4 dark:text-gray-300">{{ $user->email }}</td>
                         <td class="px-6 py-4">
-                            @php
-                                $roleClasses = [
-                                    0 => 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 border-purple-200 dark:border-purple-800',
-                                    1 => 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600',
-                                    2 => 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400 border-pink-200 dark:border-pink-800',
-                                ];
-                                $roleNames = [0 => 'Admin', 1 => 'Petugas', 2 => 'Petugas Loket'];
-                            @endphp
-                            <span class="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border {{ $roleClasses[$user->role] ?? 'bg-gray-100' }}">
-                                {{ $roleNames[$user->role] ?? 'User' }}
-                            </span>
+                            @if($user->role === 0)
+                                <span class="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 border-purple-200 dark:border-purple-800">Admin</span>
+                            @elseif($user->role === 1)
+                                <span class="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600">Petugas</span>
+                            @else
+                                <span class="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400 border-pink-200 dark:border-pink-800">Petugas Loket</span>
+                            @endif
                         </td>
                         <td class="px-6 py-4">
                             <span class="px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-800/50 rounded-xl text-[10px] font-black uppercase tracking-widest">
@@ -248,7 +244,7 @@ $delete = function (User $user) {
                     </div>
                     @if(auth()->user()->role === 0)
                         <!-- Searchable Location Select -->
-                        <div class="relative" x-data="dropdownSearch" @click.away="close">
+                        <div class="relative" x-data="dropdownSearch()" @click.away="close">
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 ml-1">Lokasi Penugasan</label>
                             <div class="mt-1 relative">
                                 <button type="button" @click="toggle" class="relative w-full bg-gray-50 dark:bg-gray-700 border border-transparent rounded-xl py-3 pl-4 pr-10 text-left focus:outline-none focus:ring-4 focus:ring-emerald-500/10 transition-all dark:text-white">
@@ -259,9 +255,13 @@ $delete = function (User $user) {
                                         <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 01.707.293l3 3a1 1 0 01-1.414 1.414L10 5.414 7.707 7.707a1 1 0 01-1.414-1.414l3-3A1 1 0 0110 3zm-3.707 9.293a1 1 0 011.414 0L10 14.586l2.293-2.293a1 1 0 011.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
                                     </span>
                                 </button>
-                                <div x-show="open" class="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 shadow-2xl rounded-xl py-1 overflow-hidden border border-gray-100 dark:border-gray-700" x-transition>
+                                <div x-show="open" class="absolute z-[60] mt-1 w-full bg-white dark:bg-gray-800 shadow-2xl rounded-xl py-1 overflow-hidden border border-gray-100 dark:border-gray-700" x-transition>
                                     <div class="p-2 border-b border-gray-100 dark:border-gray-700">
-                                        <input type="text" x-model.debounce.300ms="$wire.searchLocationModal" x-ref="searchInput" placeholder="Cari lokasi..." class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border-none rounded-lg text-xs focus:ring-2 focus:ring-emerald-500">
+                                        <input type="text" 
+                                            wire:model.live.debounce.300ms="searchLocationModal" 
+                                            x-ref="searchInput" 
+                                            placeholder="Cari lokasi..." 
+                                            class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border-none rounded-lg text-xs focus:ring-2 focus:ring-emerald-500">
                                     </div>
                                     <ul class="max-h-48 overflow-y-auto">
                                         @forelse($this->locations as $loc)
@@ -271,7 +271,7 @@ $delete = function (User $user) {
                                                 </button>
                                             </li>
                                         @empty
-                                            <li class="px-4 py-2 text-xs text-gray-500">Lokasi tidak ditemukan</li>
+                                            <li class="px-4 py-2 text-xs text-gray-500 text-center italic">Lokasi tidak ditemukan</li>
                                         @endforelse
                                     </ul>
                                 </div>
@@ -294,16 +294,17 @@ $delete = function (User $user) {
                         <div class="mt-1 relative">
                             <button type="button" @click="toggle" class="relative w-full bg-gray-50 dark:bg-gray-700 border border-transparent rounded-xl py-3 pl-4 pr-10 text-left focus:outline-none focus:ring-4 focus:ring-emerald-500/10 transition-all dark:text-white">
                                 <span class="block truncate">
-                                    @php
-                                        $roleMap = [0 => 'Admin', 1 => 'Petugas', 2 => 'Petugas Loket'];
-                                    @endphp
-                                    {{ $roleMap[$role] ?? 'Pilih Peran' }}
+                                    @if($role === 0) Admin
+                                    @elseif($role === 1) Petugas
+                                    @elseif($role === 2) Petugas Loket
+                                    @else Pilih Peran
+                                    @endif
                                 </span>
                                 <span class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-gray-400">
                                     <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 01.707.293l3 3a1 1 0 01-1.414 1.414L10 5.414 7.707 7.707a1 1 0 01-1.414-1.414l3-3A1 1 0 0110 3zm-3.707 9.293a1 1 0 011.414 0L10 14.586l2.293-2.293a1 1 0 011.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
                                 </span>
                             </button>
-                            <div x-show="open" class="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 shadow-2xl rounded-xl py-1 overflow-hidden border border-gray-100 dark:border-gray-700" x-transition>
+                            <div x-show="open" class="absolute z-[60] mt-1 w-full bg-white dark:bg-gray-800 shadow-2xl rounded-xl py-1 overflow-hidden border border-gray-100 dark:border-gray-700" x-transition>
                                 <div class="p-2 border-b border-gray-100 dark:border-gray-700">
                                     <input type="text" x-model="search" x-ref="searchInput" placeholder="Cari peran..." class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border-none rounded-lg text-xs focus:ring-2 focus:ring-emerald-500">
                                 </div>

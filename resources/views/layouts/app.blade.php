@@ -89,5 +89,32 @@
                 </main>
             </div>
         </div>
+        <script>
+            document.addEventListener('alpine:init', () => {
+                Alpine.data('dropdownSearch', (config = { items: [] }) => ({
+                    open: false,
+                    search: '',
+                    items: config.items || [],
+                    
+                    toggle() {
+                        this.open = !this.open;
+                        if (this.open) {
+                            this.$nextTick(() => { this.$refs.searchInput.focus(); });
+                        }
+                    },
+                    close() { this.open = false; },
+                    select(field, value) {
+                        this.$wire.set(field, value);
+                        this.open = false;
+                    },
+                    get filteredItems() {
+                        if (!this.search) return this.items;
+                        return this.items.filter(i => 
+                            i.name.toLowerCase().includes(this.search.toLowerCase())
+                        );
+                    }
+                }));
+            });
+        </script>
     </body>
 </html>
