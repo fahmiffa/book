@@ -100,9 +100,8 @@ $checkNewCall = function () {
 ?>
 
 <div class="h-screen bg-[#05050a] text-white p-3 lg:p-4 2xl:p-8 flex flex-col gap-3 lg:gap-4 2xl:gap-6 overflow-hidden font-sans selection:bg-indigo-500/30" 
-     wire:poll.5s="checkNewCall"
      x-data="{
-        audioEnabled: false,
+        audioEnabled: $persist(false).as('display_audio_enabled'),
         audioQueue: [],
         isPlaying: false,
         
@@ -116,7 +115,6 @@ $checkNewCall = function () {
             // Extract audio array from Livewire dispatch (handles different formats)
             let audioList = null;
             if (Array.isArray(detail)) {
-                // Could be [{audio: [...]}] or directly [url1, url2]
                 if (detail.length > 0 && detail[0] && detail[0].audio) {
                     audioList = detail[0].audio;
                 } else if (detail.length > 0 && typeof detail[0] === 'string') {
@@ -164,6 +162,9 @@ $checkNewCall = function () {
      }"
      @panggil-publik.window="panggilSuara($event.detail)">
     
+    {{-- Hidden Livewire polling div, isolated from Alpine root to preserve audio state --}}
+    <div wire:poll.5s="checkNewCall" class="hidden"></div>
+
     <!-- Audio Unlock Overlay -->
     <template x-if="!audioEnabled">
         <div class="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center">
