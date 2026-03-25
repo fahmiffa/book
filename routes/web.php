@@ -29,4 +29,6 @@ Route::get('display/{location}', function (App\Models\Location $location) {
     return view('display', ['location' => $location]);
 })->name('display.public');
 
+Route::get('sse/antrian/{location_id}', [App\Http\Controllers\SseController::class, 'stream'])->name('sse.antrian');
+
 require __DIR__.'/auth.php';

@@ -101,6 +101,22 @@ $checkNewCall = function () {
 
 <div class="h-screen bg-[#05050a] text-white p-3 lg:p-4 2xl:p-8 flex flex-col gap-3 lg:gap-4 2xl:gap-6 overflow-hidden font-sans selection:bg-indigo-500/30" 
      x-data="{
+        init() {
+            const source = new EventSource('/sse/antrian/{{ $location_id }}');
+            source.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                console.log('SSE message received:', data);
+                // Trigger livewire refresh when SSE signals update
+                this.$wire.checkNewCall();
+            };
+            source.onerror = (err) => {
+                console.error('SSE Error:', err);
+                source.close();
+                // Optional: Reconnect logic
+                setTimeout(() => this.init(), 5000);
+            };
+        },
+        
         audioEnabled: $persist(false).as('display_audio_enabled'),
         audioQueue: [],
         isPlaying: false,
@@ -162,8 +178,8 @@ $checkNewCall = function () {
      }"
      @panggil-publik.window="panggilSuara($event.detail)">
     
-    {{-- Hidden Livewire polling div, isolated from Alpine root to preserve audio state --}}
-    <div wire:poll.5s="checkNewCall" class="hidden"></div>
+    {{-- Hidden Livewire SSE listener trigger (using manual refresh from JS) --}}
+    <div class="hidden"></div>
 
     <!-- Audio Unlock Overlay -->
     <template x-if="!audioEnabled">
