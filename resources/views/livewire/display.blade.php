@@ -99,7 +99,7 @@ $checkNewCall = function () {
 
 ?>
 
-<div class="h-screen bg-[#05050a] text-white p-4 sm:p-6 lg:p-8 flex flex-col gap-4 sm:gap-6 overflow-hidden font-sans selection:bg-indigo-500/30" 
+<div class="h-screen bg-[#05050a] text-white p-3 lg:p-4 2xl:p-8 flex flex-col gap-3 lg:gap-4 2xl:gap-6 overflow-hidden font-sans selection:bg-indigo-500/30" 
      wire:poll.5s="checkNewCall"
      x-data="{
         audioEnabled: false,
@@ -188,103 +188,96 @@ $checkNewCall = function () {
     </div>
 
     <!-- Top Header Bar -->
-    <div class="flex flex-col lg:flex-row justify-between items-center bg-white/[0.03] backdrop-blur-2xl px-6 sm:px-10 py-6 rounded-[2rem] sm:rounded-[2.5rem] border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.8)] z-20 gap-6 lg:gap-0">
-        <div class="flex items-center gap-4 sm:gap-8 w-full lg:w-auto">
-            <div class="relative group">
-                <div class="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-blue-600 rounded-3xl blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
-                <div class="relative w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center font-black text-3xl border border-white/10 shrink-0">
-                    A
-                </div>
-            </div>
+    <div class="flex flex-row justify-between items-center bg-white/[0.03] backdrop-blur-2xl px-4 lg:px-6 2xl:px-10 py-3 lg:py-4 2xl:py-5 rounded-2xl lg:rounded-[2rem] border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.8)] z-20 gap-4 shrink-0">
+        <div class="flex items-center gap-3 lg:gap-6">
             <div>
-                <div class="flex items-center gap-4">
-                    <h1 class="text-xl sm:text-3xl font-black uppercase tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-gray-400">Antrian Pelayanan</h1>
-                    <!-- Test Audio Button (only visible to operators, but here small for debug) -->
-                    <button @click="panggilSuara({audio: ['/audio/kata_umum/nomor_antrian.wav','/audio/huruf/A.wav', '/audio/angka/0.wav', '/audio/angka/0.wav', '/audio/angka/0.wav', '/audio/angka/1.wav', '/audio/kata_umum/silakan_ke.wav', '/audio/kata_umum/loket.wav', '/audio/angka/1.wav']})" class="p-2 bg-white/5 rounded-lg border border-white/10 opacity-20 hover:opacity-100 transition shadow-sm" title="Tes Suara">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5L6 9H2v6h4l5 4V5zM15.54 8.46a5 5 0 010 7.07M19.07 4.93a9 9 0 010 12.73"></path></svg>
+                <div class="flex items-center gap-3">
+                    <h1 class="text-base lg:text-xl 2xl:text-3xl font-black uppercase tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-gray-400">Antrian Pelayanan</h1>
+                    <button @click="panggilSuara({audio: ['/audio/kata_umum/nomor_antrian.wav','/audio/huruf/A.wav', '/audio/angka/0.wav', '/audio/angka/0.wav', '/audio/angka/0.wav', '/audio/angka/1.wav', '/audio/kata_umum/silakan_ke.wav', '/audio/kata_umum/loket.wav', '/audio/angka/1.wav']})" class="p-1.5 bg-white/5 rounded-lg border border-white/10 opacity-20 hover:opacity-100 transition shadow-sm" title="Tes Suara">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5L6 9H2v6h4l5 4V5zM15.54 8.46a5 5 0 010 7.07M19.07 4.93a9 9 0 010 12.73"></path></svg>
                     </button>
                 </div>
                 @php $currentLocation = \App\Models\Location::find($location_id); @endphp
-                <p class="text-indigo-400/80 font-bold uppercase tracking-[0.4em] text-[10px] sm:text-xs mt-1.5 flex items-center gap-2">
-                    <span class="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(99,102,241,0.8)]"></span>
+                <p class="text-indigo-400/80 font-bold uppercase tracking-[0.3em] text-[8px] lg:text-[10px] mt-1 flex items-center gap-2">
+                    <span class="w-1 h-1 bg-indigo-500 rounded-full animate-pulse"></span>
                     {{ $currentLocation?->name ?? 'Pusat Layanan' }} • {{ now()->translatedFormat('l, d F Y') }}
                 </p>
             </div>
         </div>
-        <div class="flex items-center gap-6 sm:gap-10 ml-auto lg:ml-0">
-            <div class="h-10 sm:h-12 w-px bg-white/10"></div>
+        <div class="flex items-center gap-4 lg:gap-6">
+            <div class="h-8 lg:h-10 w-px bg-white/10"></div>
             <div class="text-right">
-                <div class="text-2xl sm:text-5xl font-black tabular-nums tracking-tighter text-white" x-data="{ time: '' }" x-init="setInterval(() => time = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }), 1000)" x-text="time"></div>
-                <div class="text-slate-500 font-bold uppercase tracking-[0.2em] text-[8px] sm:text-[9px] mt-1">Waktu Lokal (WIB)</div>
+                <div class="text-xl lg:text-2xl 2xl:text-4xl font-black tabular-nums tracking-tighter text-white" x-data="{ time: '' }" x-init="setInterval(() => time = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }), 1000)" x-text="time"></div>
+                <div class="text-slate-500 font-bold uppercase tracking-[0.15em] text-[7px] lg:text-[8px] mt-0.5">WIB</div>
             </div>
         </div>
     </div>
     
     <!-- Statistics Bar -->
-    <div class="grid grid-cols-2 gap-4 sm:gap-6 z-20">
-        <div class="bg-white/[0.03] backdrop-blur-xl p-4 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] border border-white/10 flex items-center gap-4 sm:gap-6 shadow-xl">
-            <div class="w-10 h-10 sm:w-12 sm:h-12 bg-emerald-500/20 rounded-xl sm:rounded-2xl flex items-center justify-center border border-emerald-500/30">
-                <svg class="w-5 h-5 sm:w-6 sm:h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+    <div class="grid grid-cols-2 gap-3 lg:gap-4 2xl:gap-6 z-20 shrink-0">
+        <div class="bg-white/[0.03] backdrop-blur-xl p-3 lg:p-4 2xl:p-6 rounded-xl lg:rounded-2xl border border-white/10 flex items-center gap-3 lg:gap-4 2xl:gap-6 shadow-xl">
+            <div class="w-8 h-8 lg:w-10 lg:h-10 2xl:w-12 2xl:h-12 bg-emerald-500/20 rounded-lg lg:rounded-xl flex items-center justify-center border border-emerald-500/30">
+                <svg class="w-4 h-4 lg:w-5 lg:h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
             </div>
             <div>
-                <p class="text-slate-500 text-[8px] sm:text-[10px] font-black uppercase tracking-[0.2em] mb-0.5 sm:mb-1 leading-tight text-left">Total Sudah Dipanggil</p>
-                <p class="text-xl sm:text-3xl font-black text-white tabular-nums text-left leading-none">{{ $this->totalCalled }} <span class="text-[8px] sm:text-xs text-slate-600 ml-1">ORANG</span></p>
+                <p class="text-slate-500 text-[7px] lg:text-[9px] font-black uppercase tracking-[0.15em] mb-0.5 leading-tight">Total Sudah Dipanggil</p>
+                <p class="text-lg lg:text-2xl 2xl:text-3xl font-black text-white tabular-nums leading-none">{{ $this->totalCalled }} <span class="text-[7px] lg:text-[10px] text-slate-600 ml-0.5">ORANG</span></p>
             </div>
         </div>
-        <div class="bg-white/[0.03] backdrop-blur-xl p-4 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] border border-white/10 flex items-center gap-4 sm:gap-6 shadow-xl">
-            <div class="w-10 h-10 sm:w-12 sm:h-12 bg-amber-500/20 rounded-xl sm:rounded-2xl flex items-center justify-center border border-amber-500/30">
-                <svg class="w-5 h-5 sm:w-6 sm:h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <div class="bg-white/[0.03] backdrop-blur-xl p-3 lg:p-4 2xl:p-6 rounded-xl lg:rounded-2xl border border-white/10 flex items-center gap-3 lg:gap-4 2xl:gap-6 shadow-xl">
+            <div class="w-8 h-8 lg:w-10 lg:h-10 2xl:w-12 2xl:h-12 bg-amber-500/20 rounded-lg lg:rounded-xl flex items-center justify-center border border-amber-500/30">
+                <svg class="w-4 h-4 lg:w-5 lg:h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             </div>
             <div>
-                <p class="text-slate-500 text-[8px] sm:text-[10px] font-black uppercase tracking-[0.2em] mb-0.5 sm:mb-1 leading-tight text-left">Total Belum Dipanggil</p>
-                <p class="text-xl sm:text-3xl font-black text-white tabular-nums text-left leading-none">{{ $this->totalPending }} <span class="text-[8px] sm:text-xs text-slate-600 ml-1">ANTREAN</span></p>
+                <p class="text-slate-500 text-[7px] lg:text-[9px] font-black uppercase tracking-[0.15em] mb-0.5 leading-tight">Total Belum Dipanggil</p>
+                <p class="text-lg lg:text-2xl 2xl:text-3xl font-black text-white tabular-nums leading-none">{{ $this->totalPending }} <span class="text-[7px] lg:text-[10px] text-slate-600 ml-0.5">ANTREAN</span></p>
             </div>
         </div>
     </div>
 
 
     <!-- Main Content Grid -->
-    <div class="flex-1 grid grid-cols-12 gap-6 sm:gap-10 min-h-0 z-10 overflow-hidden">
+    <div class="flex-1 grid grid-cols-12 gap-3 lg:gap-4 2xl:gap-8 min-h-0 z-10 overflow-hidden">
         <!-- Call Status Panel (Master Box) -->
         <div class="col-span-12 lg:col-span-7 flex flex-col h-full min-h-0">
-            <div class="flex-1 bg-gradient-to-br from-indigo-600/90 via-indigo-700/80 to-blue-800/90 rounded-[2.5rem] sm:rounded-[4rem] p-6 sm:p-8 lg:p-12 flex flex-col items-center justify-center text-center shadow-[0_32px_64px_-16px_rgba(0,0,0,0.6)] relative overflow-hidden border border-white/20 group">
+            <div class="flex-1 bg-gradient-to-br from-indigo-600/90 via-indigo-700/80 to-blue-800/90 rounded-2xl lg:rounded-[2.5rem] 2xl:rounded-[4rem] p-4 lg:p-6 2xl:p-12 flex flex-col items-center justify-center text-center shadow-[0_32px_64px_-16px_rgba(0,0,0,0.6)] relative overflow-hidden border border-white/20 group">
                 
                 <!-- Inner Glow & Pattern -->
                 <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent opacity-50"></div>
                 <div class="absolute inset-0 opacity-5 pointer-events-none scale-125 select-none grayscale invert" style="background-image: radial-gradient(#fff 2px, transparent 2px); background-size: 40px 40px;"></div>
                 
                 <div class="relative z-10 w-full flex flex-col items-center">
-                    <div class="inline-flex items-center gap-3 px-8 py-3 bg-black/20 backdrop-blur-xl rounded-full border border-white/10 mb-12 transform group-hover:scale-105 transition-transform duration-500">
-                        <span class="w-2 h-2 bg-emerald-400 rounded-full animate-ping"></span>
-                        <span class="text-sm font-black uppercase tracking-[0.5em] text-white/90">Panggilan Aktif</span>
+                    <div class="inline-flex items-center gap-2 px-4 lg:px-6 py-2 bg-black/20 backdrop-blur-xl rounded-full border border-white/10 mb-4 lg:mb-8 2xl:mb-12 transform group-hover:scale-105 transition-transform duration-500">
+                        <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping"></span>
+                        <span class="text-xs font-black uppercase tracking-[0.4em] text-white/90">Panggilan</span>
                     </div>
                     
                     @if($this->lastCalled)
                         <div class="relative">
-                            <div class="absolute -inset-10 bg-white/20 blur-[80px] rounded-full opacity-50 animate-pulse"></div>
-                            <h2 class="text-7xl sm:text-[14rem] font-black leading-none drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)] mb-4 sm:mb-6 tracking-tighter text-white relative">
+                            <div class="absolute -inset-6 lg:-inset-10 bg-white/20 blur-[80px] rounded-full opacity-50 animate-pulse"></div>
+                            <h2 class="text-4xl lg:text-7xl 2xl:text-[8rem] font-black leading-none drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)] mb-3 lg:mb-4 2xl:mb-6 tracking-tighter text-white relative">
                                 <span class="bg-clip-text text-transparent bg-gradient-to-b from-white to-gray-300">A</span><span class="inline-block mx-[-0.05em]">-</span>{{ str_pad($this->lastCalled->id, 4, '0', STR_PAD_LEFT) }}
                             </h2>
                         </div>
                         
-                        <div class="text-xl sm:text-5xl font-black uppercase text-white tracking-tight mb-8 sm:mb-16 max-w-[90%] line-clamp-2 drop-shadow-lg">
+                        <!-- <div class="text-xl sm:text-5xl font-black uppercase text-white tracking-tight mb-8 sm:mb-16 max-w-[90%] line-clamp-2 drop-shadow-lg">
                              {{ $this->lastCalled->name }}
-                        </div>
+                        </div> -->
                         
-                        <div class="flex items-center justify-center w-full px-4 sm:px-12">
-                            <div class="hidden sm:block w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
-                            <div class="shrink-0 px-8 py-5 sm:px-12 sm:py-7 bg-white text-indigo-950 rounded-[2rem] sm:rounded-[3rem] text-xl sm:text-6xl font-black uppercase tracking-widest shadow-2xl flex items-center gap-3 sm:gap-6 transform hover:scale-105 transition-all duration-500 border-2 sm:border-4 border-white/50">
-                                <svg class="w-6 h-6 sm:w-14 sm:h-14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                        <div class="flex items-center justify-center w-full px-2 lg:px-6 2xl:px-12">
+                            <div class="hidden lg:block w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+                            <div class="shrink-0 px-5 py-3 lg:px-8 lg:py-5 2xl:px-12 2xl:py-7 bg-white text-indigo-950 rounded-xl lg:rounded-[2rem] 2xl:rounded-[3rem] text-base lg:text-2xl 2xl:text-5xl font-black uppercase tracking-widest shadow-2xl flex items-center gap-2 lg:gap-4 transform hover:scale-105 transition-all duration-500 border-2 border-white/50">
+                                <svg class="w-5 h-5 lg:w-7 lg:h-7 2xl:w-12 2xl:h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                                 {{ $this->lastCalled->loket?->type ?? 'LOKET' }} {{ $this->lastCalled->loket?->name }}
                             </div>
-                            <div class="hidden sm:block w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+                            <div class="hidden lg:block w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
                         </div>
                     @else
                         <div class="flex flex-col items-center gap-10 py-24">
                             <div class="w-32 h-32 rounded-full border-4 border-white/10 flex items-center justify-center animate-spin-slow">
                                 <svg class="w-16 h-16 text-white/20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                             </div>
-                            <div class="text-2xl sm:text-4xl font-black uppercase tracking-[0.3em] text-white/20 italic">Menanti Antrian...</div>
+                            <div class="text-xl lg:text-2xl 2xl:text-4xl font-black uppercase tracking-[0.3em] text-white/20 italic">Menanti Antrian...</div>
                         </div>
                     @endif
                 </div>
@@ -292,7 +285,7 @@ $checkNewCall = function () {
         </div>
 
         <!-- Sidebar Loket States -->
-        <div class="col-span-12 lg:col-span-5 flex flex-col gap-4 sm:gap-6 overflow-y-auto lg:pr-4 h-full custom-scrollbar pb-4 sm:pb-10">
+        <div class="col-span-12 lg:col-span-5 flex flex-row lg:flex-col gap-4 sm:gap-6 overflow-x-auto lg:overflow-y-auto lg:pr-4 h-auto lg:h-full custom-scrollbar pb-4 sm:pb-10">
             @foreach($this->lokets as $loket)
                 @php 
                     $current = App\Models\Booking::where('loket_id', $loket->id)
@@ -302,12 +295,12 @@ $checkNewCall = function () {
                         ->first();
                     $isBeingCalled = $this->lastCalled && $current && $this->lastCalled->id == $current->id;
                 @endphp
-                <div class="relative group">
+                <div class="relative group shrink-0 w-[280px] sm:w-[350px] lg:w-full">
                     <div class="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-blue-600 rounded-[2.5rem] blur opacity-0 transition duration-1000 group-hover:opacity-10 {{ $isBeingCalled ? 'opacity-30' : '' }}"></div>
-                    <div class="relative flex items-center justify-between p-6 sm:p-8 bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-[2rem] sm:rounded-[2.5rem] shadow-xl transition-all duration-500 {{ $isBeingCalled ? 'ring-2 ring-indigo-500/50 bg-indigo-500/10' : '' }}">
-                        <div class="flex flex-col gap-1 min-w-0">
-                            <span class="text-indigo-400 font-black uppercase tracking-[0.3em] text-[8px] sm:text-[9px]">{{ $loket->type ?? 'Pelayanan' }}</span>
-                            <h3 class="text-xl sm:text-4xl font-black text-white truncate tracking-tight">{{ $loket->name }}</h3>
+                    <div class="relative flex items-center justify-between p-4 lg:p-5 2xl:p-8 bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-xl lg:rounded-2xl 2xl:rounded-[2.5rem] shadow-xl transition-all duration-500 {{ $isBeingCalled ? 'ring-2 ring-indigo-500/50 bg-indigo-500/10' : '' }}">
+                        <div class="flex flex-col gap-0.5 min-w-0">
+                            <span class="text-indigo-400 font-black uppercase tracking-[0.2em] text-[10px] lg:text-[12px]">{{ $loket->type ?? 'Pelayanan' }}</span>
+                            <h3 class="text-xl lg:text-2xl 2xl:text-4xl font-black text-white truncate tracking-tight">{{ $loket->name }}</h3>
                             <div class="flex gap-1.5 mt-2">
                                 <div class="h-1.5 w-8 rounded-full {{ $isBeingCalled ? 'bg-indigo-400 shadow-[0_0_10px_rgba(129,140,248,0.8)]' : 'bg-white/10' }}"></div>
                                 <div class="h-1.5 w-1.5 rounded-full {{ $isBeingCalled ? 'bg-indigo-400' : 'bg-white/10' }}"></div>
@@ -317,10 +310,10 @@ $checkNewCall = function () {
                         <div class="text-right shrink-0">
                             @if($current)
                                 <div class="flex flex-col items-end">
-                                    <div class="text-3xl sm:text-6xl font-black tabular-nums tracking-tighter {{ $isBeingCalled ? 'text-white' : 'text-indigo-400' }}">
-                                        <span class="text-xl sm:text-3xl opacity-50 mr-0.5">A</span>{{ str_pad($current->id, 4, '0', STR_PAD_LEFT) }}
+                                    <div class="text-2xl lg:text-3xl 2xl:text-5xl font-black tabular-nums tracking-tighter {{ $isBeingCalled ? 'text-white' : 'text-indigo-400' }}">
+                                        <span class="text-base lg:text-xl opacity-50 mr-0.5">A</span>{{ str_pad($current->id, 4, '0', STR_PAD_LEFT) }}
                                     </div>
-                                    <div class="text-[8px] sm:text-xs font-bold text-slate-500 uppercase tracking-widest mt-1 max-w-[120px] sm:max-w-[180px] truncate">{{ $current->name }}</div>
+                                    <div class="text-[7px] lg:text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-0.5 max-w-[100px] lg:max-w-[150px] truncate">{{ $current->name }}</div>
                                 </div>
                             @else
                                 <div class="flex flex-col items-end opacity-20">
@@ -336,7 +329,7 @@ $checkNewCall = function () {
     </div>
 
     <!-- Bottom Marquee Bar -->
-    <div class="relative h-14 sm:h-20 bg-white/[0.03] backdrop-blur-xl rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden border border-white/10 flex items-center z-20 group mt-auto shrink-0">
+    <div class="relative h-10 lg:h-12 2xl:h-16 bg-white/[0.03] backdrop-blur-xl rounded-xl lg:rounded-2xl overflow-hidden border border-white/10 flex items-center z-20 shrink-0">
         <div class="absolute inset-y-0 left-0 w-40 bg-gradient-to-r from-slate-950 to-transparent z-10"></div>
         <div class="absolute inset-y-0 right-0 w-40 bg-gradient-to-l from-slate-950 to-transparent z-10"></div>
         <div class="whitespace-nowrap flex items-center gap-24 sm:gap-40 animate-marquee py-2 px-20">
@@ -404,6 +397,13 @@ $checkNewCall = function () {
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Adaptive display for 1366x768 and similar small desktops */
+        @media screen and (max-width: 1440px) and (min-width: 1024px) {
+            .display-root {
+                zoom: unset;
+            }
         }
     </style>
 </div>
