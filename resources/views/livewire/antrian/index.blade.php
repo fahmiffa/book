@@ -246,7 +246,7 @@ $selesaiAction = function () {
                         @endif
 
                         <div class="space-y-4">
-                            <label class="text-[10px] sm:text-xs font-black text-gray-400 uppercase tracking-widest px-1">Pilih Loket Pelayanan</label>
+                            <label class="text-[10px] sm:text-xs font-black text-gray-400 uppercase tracking-widest px-1">Pilih Pelayanan</label>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                 @foreach($this->lokets as $loket)
                                     @php 
@@ -259,7 +259,7 @@ $selesaiAction = function () {
                                         @if($isFull) disabled @endif
                                         class="p-4 sm:p-5 rounded-2xl sm:rounded-[2rem] border-2 transition-all flex flex-col items-center gap-1 sm:gap-2 group relative overflow-hidden {{ $selectedLoketId == $loket->id ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/30' : ($isFull ? 'bg-rose-50 border-rose-100 cursor-not-allowed opacity-60' : 'border-gray-100 dark:border-gray-700 hover:border-indigo-300') }}"
                                     >
-                                        <div class="text-[8px] sm:text-[10px] font-black uppercase tracking-widest {{ $selectedLoketId == $loket->id ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400 group-hover:text-indigo-400' }}">Loket</div>
+                                        <div class="text-[8px] sm:text-[10px] font-black uppercase tracking-widest {{ $selectedLoketId == $loket->id ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400 group-hover:text-indigo-400' }}">{{$loket->type}}</div>
                                         <div class="text-lg sm:text-xl font-black {{ $selectedLoketId == $loket->id ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-700 dark:text-gray-300' }}">{{ $loket->name }}</div>
                                         
                                         <div class="w-full h-1 bg-gray-100 dark:bg-gray-800 rounded-full mt-1 sm:mt-2 overflow-hidden shadow-inner">
